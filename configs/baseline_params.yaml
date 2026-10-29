@@ -1,0 +1,26 @@
+# ========================================================================
+# Title: One Heart in Dual Physiological States and the Emergence of a Hidden Risk Phenotype
+# Configuration: Baseline Physiological Parameters (Table 1 Metrics)
+# Reference: Validated against standard healthy adult resting demographics
+# ========================================================================
+
+pacing_mechanics:
+  HR: 75.0               # Heart Rate (beats/min)
+  T: 0.80                # Cardiac cycle duration length (seconds) [60.0 / HR]
+
+left_ventricular_properties:
+  Emax: 2.0              # Maximum systolic elastance contractility (mmHg/mL)
+  Emin: 0.06             # Minimum diastolic passive elastance stiffness (mmHg/mL)
+  V0: 10.0               # Unstressed ventricular reference volume intercept (mL)
+
+vascular_network_capacities:
+  Ca: 1.5                # Total systemic arterial reservoir compliance (mL/mmHg)
+  Cv: 100.0              # Systemic venous storage pool compliance (mL/mmHg)
+  Vtot: 5000.0           # Conserved total circulating blood volume condition (mL)
+
+hydraulic_valve_resistances:
+  R_av: 0.01             # Aortic valve forward hydraulic resistance (mmHg*s/mL)
+  R_mv: 0.008            # Mitral valve forward filling hydraulic resistance (mmHg*s/mL)
+
+fixed_baseline_afterload:
+  Rsys: 1.0              # Baseline normal systemic vascular resistance (mmHg*s/mL)
