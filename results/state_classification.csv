@@ -1,0 +1,3 @@
+Evaluated System Configuration,Pre-Stress MAP (mmHg),Post-Stress Outcome,Transient Settling Duration (s),Stability Branch Destination,Clinical Phenotype Analogy
+System A (Preload Origin Seed 1),82.34,Resilient Recovery,8.5,State A (Lower Branch),Compensated Resilient Profile
+System B (Preload Origin Seed 2),115.82,Attractor Transition State Failure,13.0,State B (Alternative High Branch),Fragile Hidden-Risk Phenotype
