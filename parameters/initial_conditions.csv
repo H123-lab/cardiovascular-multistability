@@ -1,0 +1,8 @@
+Experiment / Simulation Type,Initial V_lv (mL),Initial P_a (mmHg),Initial P_v (mmHg),State Space Convergence Target
+Baseline Reference Validation,120.0,95.0,12.0,Compensated Limit-Cycle Orbit (State A Baseline)
+Forward Continuation Progression,120.0,95.0,12.0,Continuous tracing up the Lower Pressure branch
+Reverse Continuation Regression,45.0,165.0,6.0,Continuous tracing down the Upper Pressure branch
+State Basin A Attractor Check,140.0,80.0,14.0,Convergence to Low-Volume/High-Pressure Limit Cycle
+State Basin B Attractor Check,50.0,150.0,6.0,Convergence to High-Volume/Low-Pressure Limit Cycle
+Transient Volumetric Perturbation (Resilient),120.0,95.0,12.0,Post-stress recovery back to original Attractor Basin A
+Transient Volumetric Perturbation (Switching),55.0,145.0,7.0,Post-stress irreversible trajectory crossing to Attractor Basin B
