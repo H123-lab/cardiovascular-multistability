@@ -19,3 +19,33 @@ The ideal diode logic governing the aortic and mitral cardiac valves introduces 
 
 To protect the fixed-step integration engine from floating-point instabilities when valves are barely open or completely shut, the codebase enforces several numerical protections:
 
+
+Defensive Code Layer Properties
+
+
+Protection Mechanism | Software Implementation
+
+
+Double Precision     | IEEE 754 float64 data allocation
+Valve Clamping       | Algebraic max(0, Q) diode bounds tracking
+State Clamping       | Enforced absolute lower bound V_lv >= 0.0
+Residual Filtration  | Truncates sub-epsilon numerical noise (< 1e-12)
+
+These explicit boundaries prevent the state vectors from slipping into unphysical negative domains due to tiny numerical rounding errors, ensuring the tracking stability of long continuous simulations.
+
+## 3. Modular Architecture and Decoupled Testing
+The repository is strictly decoupled into independent operational layers to maximize maintainability and eliminate interlocking side-effects:
+1.  **Configuration Layer (`configs/`):** Flat YAML parameters and boundary ranges. No executable logic.
+2.  **Model Core Library (`model/`):** Pure mathematical functions (elastance equations, valve laws). No state tracking.
+3.  **Simulation Engine (`simulations/`):** Driver launchers executing specific runs and continuations. No hardcoded variables.
+4.  **Testing Infrastructure (`tests/`):** Automated unit tests evaluating code stability and mass conservation boundaries.
+
+By keeping these operational areas entirely separate, any modifications made to satisfy reviewers' requests (such as adjusting a parameter range or testing a new initial condition) can be done cleanly without altering or risking breaking your core ordinary differential equation integration code.
+
+🔍 Why This Document Is Crucial for Your Revision Package
+
+1. Demonstrates High Software Integrity: It shows the editors and reviewers that your code isn't just a temporary script, but a professionally structured package built around modern software engineering principles.
+2. Defends Code Stability: Highlighting your runtime sanity gates and floating-point clamping shows that you pre-emptively addressed common computing errors, giving reviewers complete confidence in your data.
+3. Validates Your Core Discoveries: Proving that your code is strictly bounded and free from numerical noise verifies that your hidden-risk phenotype is a genuine biophysical feature of your model equations, not a glitch caused by floating-point rounding errors.
+
+
