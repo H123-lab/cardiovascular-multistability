@@ -1,0 +1,32 @@
+{
+  "directory": "results/raw/perturbations/",
+  "experimental_conditions": {
+    "Rsys_locked_afterload": 1.40,
+    "Rsys_units": "mmHg*s/mL",
+    "stressor_type": "Acute Left Ventricular Volume (LVV) Expansion",
+    "delta_magnitude": 0.10,
+    "timestamp_injection_seconds": 30.0
+  },
+  "profiles": [
+    {
+      "filename": "system_a_recovery_raw.csv",
+      "phenotype_classification": "Resilient Model Operating Point",
+      "initial_condition_origin": [120.0, 95.0, 12.0],
+      "initial_condition_labels": ["V_lv", "P_a", "P_v"],
+      "pre_stress_MAP_branch_mmHg": 82.3,
+      "post_stress_outcome": "Complete stress absorption and relaxation back to initial attractor",
+      "settling_duration_seconds": 8.5,
+      "settling_tolerance_mmHg": 0.5
+    },
+    {
+      "filename": "system_b_transition_raw.csv",
+      "phenotype_classification": "Fragile Hidden-Risk Operating Point",
+      "initial_condition_origin": [55.0, 145.0, 7.0],
+      "initial_condition_labels": ["V_lv", "P_a", "P_v"],
+      "pre_stress_MAP_branch_mmHg": 115.8,
+      "post_stress_outcome": "Irreversible separatrix crossing and transition into alternative high-pressure equilibrium branch",
+      "transition_duration_seconds": 13.0,
+      "settling_tolerance_mmHg": 0.5
+    }
+  ]
+}
