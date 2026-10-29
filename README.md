@@ -11,6 +11,14 @@ This repository contains the source code, numerical parameters, and computationa
 * `src/` — Complete MATLAB source code scripts for running deterministic parameter sweeps, continuation simulations, and perturbation experiments.
 * `data/` — Numerical baseline parameters database and supplementary configurations matching the published tables.
 
+## Key Model Parameterization (Table 1 Baseline)
+* **Heart Rate ($HR$):** $75\text{ beats}\cdot\text{min}^{-1}$
+* **Max Ventricular Elastance ($E_{max}$):** $2.0\text{ mmHg}\cdot\text{mL}^{-1}$
+* **Arterial Compliance ($C_a$):** $1.5\text{ mL}\cdot\text{mmHg}^{-1}$
+* **Venous Compliance ($C_v$):** $100\text{ mL}\cdot\text{mmHg}^{-1}$
+* **Baseline Systemic Vascular Resistance ($R_{sys}$):** $1.0\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$
+* **Bistable Target Window:** $R_{sys}$ interval spanning approximately $1.20\text{ to }1.60\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$ (Hysteresis width: $0.40\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$)
+
 ## Computational Environment
 * **Software:** MATLAB R2024a (or later compatible versions)
 * **Arithmetic:** IEEE 754 double-precision numerical evaluation
