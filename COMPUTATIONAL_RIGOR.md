@@ -52,7 +52,7 @@ The unidirectional properties of the aortic and mitral cardiac valves are implem
 
 Our continuity checking suite (`tests/test_equation_consistency.m`) verifies that under negative backpressure loads, valve leakage is identically zero ($0.0000\text{ mL/s}$), preventing mathematically impossible backwards fluid volume transport.
 
-🔍 Why This Script Completely Protects Your Revision
+🔍 Why This Script is created
 
 1. Provides Algorithmic Rationale: It directly explains why the explicit RK4 solver was chosen over basic solvers, proving that you structured your computational framework with software engineering best practices.
 2. Defends Your Numerical Physics: By showing the analytical mathematical proof that your derivatives cancel out perfectly to \(\equiv 0\) for fluid updates (\(dV_{tot}/dt = 0\)), you instantly destroy any critique that your model experiences internal volume drifting.
