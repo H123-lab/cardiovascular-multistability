@@ -1,0 +1,8 @@
+Time(s),V_LV(mL),P_a(mmHg),P_v(mmHg),Perturbation_Active,State_Flag
+29.998,58.421,80.124,11.842,0,State_A_Lower_Branch
+29.999,57.104,80.051,11.849,0,State_A_Lower_Branch
+30.000,62.814,80.012,11.855,1,Stressor_Injected_10_Percent
+30.001,62.745,80.098,11.831,0,Transient_Recovery_Phase
+30.002,62.610,80.241,11.792,0,Transient_Recovery_Phase
+38.499,55.321,82.294,12.012,0,Limit_Cycle_Restored
+38.500,55.292,82.301,12.015,0,Limit_Cycle_Restored
