@@ -1,0 +1,9 @@
+Afterload Resistance Metric (Rsys),Forward Branch MAP (mmHg),Reverse Branch MAP (mmHg),Absolute Branch Separation (mmHg),Regime Classification
+0.60,72.14,72.14,0.00,Monostable (Lower State Only)
+0.80,83.45,83.45,0.00,Monostable (Lower State Only)
+1.00,95.12,95.12,0.00,Monostable (Lower State Only)
+1.20,85.12,110.45,25.33,Bistable Hysteresis Window
+1.40,82.34,115.82,33.48,Bistable Hysteresis Window (Target Coordinate)
+1.60,80.11,118.91,38.80,Bistable Hysteresis Window (Upper Boundary Limit)
+1.80,121.42,121.42,0.00,Monostable (Upper State Only)
+2.00,123.85,123.85,0.00,Monostable (Upper State Only)
