@@ -42,10 +42,6 @@ The repository is strictly decoupled into independent operational layers to maxi
 
 By keeping these operational areas entirely separate, any modifications made to satisfy reviewers' requests (such as adjusting a parameter range or testing a new initial condition) can be done cleanly without altering or risking breaking your core ordinary differential equation integration code.
 
-🔍 Why This Document Is Crucial for Your Revision Package
 
-1. Demonstrates High Software Integrity: It shows the editors and reviewers that your code isn't just a temporary script, but a professionally structured package built around modern software engineering principles.
-2. Defends Code Stability: Highlighting your runtime sanity gates and floating-point clamping shows that you pre-emptively addressed common computing errors, giving reviewers complete confidence in your data.
-3. Validates Your Core Discoveries: Proving that your code is strictly bounded and free from numerical noise verifies that your hidden-risk phenotype is a genuine biophysical feature of your model equations, not a glitch caused by floating-point rounding errors.
 
 
