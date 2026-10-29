@@ -1,0 +1,4 @@
+Bifurcation Point Index,Control Parameter (Rsys),Critical Threshold Value,Units,Transition Direction,State Solution Destination,Physiological Context
+1,Systemic Vascular Resistance,1.60,mmHg*s/mL,Forward Progression Sweep,Branch Transition to State B,Catastrophic upper limit afterload vasoconstriction threshold
+2,Systemic Vascular Resistance,1.20,mmHg*s/mL,Reverse Regression Sweep,Branch Collapse back to State A,Saddle-node recovery limit under vasodilation decompression
+3,Hysteresis Interval Width,0.40,mmHg*s/mL,Bidirectional Sweep Difference,Bistable Operating Window,Path-dependent memory span where dual physiological configurations coexist
