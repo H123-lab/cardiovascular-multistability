@@ -1,0 +1,9 @@
+Parameter Symbol,Literature Reference Source,Assigned Rationale,Extreme Boundary Justification
+HR,Guyton & Hall Textbook of Medical Physiology (2021) [20],Represents standard healthy resting baseline adult pacing metrics,Bounds (60-100 bpm) represent clinically accepted normal resting limits
+Emax,Suga & Sagawa Circ Res (1974) [16],Establishes the time-varying elastance validation framework,Bounds correspond to severe myocardial depression up to hyperdynamic states
+Emin,Heldt et al. J Neurosci / PB-CV Framework [21],Controls passive myocardial recoil tracking profiles,Upper limit handles advanced diastolic stiffness or compliance loss
+V0,Shi & Korakianitis Artif Organs (2006) [22],Provides structural reference volume parameterization,Spans physiological remodeling limits under chronic vascular stressors
+Rsys,Chemla et al. Am J Physiol Heart Circ Physiol (2003) [23],Isolates peripheral resistance afterload configuration,Bounds capture severe pathological vasodilation up to hypertensive crisis
+Ca,Yin & Liu Vascular Dynamics NATO ASI Series (1989) [24],Models large elastic vessel reservoir compliance behaviors,Captures structural arterial stiffening boundary values seen clinically
+Cv,Guyton & Hall Textbook of Medical Physiology (2021) [20],Controls systemic venous stress-free volume return distributions,Upper limit matches maximum fluid volume reserve recruitment limits
+Vtot,Guyton & Hall Textbook of Medical Physiology (2021) [20],Enforces mass balance conservation parameters across closed loop,Bounds simulate acute volume depletion up to clinical hypervolemia
