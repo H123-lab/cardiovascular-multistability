@@ -1,0 +1,12 @@
+name: cv-multistability-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy>=1.22.0
+  - scipy>=1.8.0
+  - matplotlib>=3.5.0
+  - pip
+  - pip:
+      - oct2py>=5.5.0
