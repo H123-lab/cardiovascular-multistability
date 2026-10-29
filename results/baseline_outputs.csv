@@ -1,0 +1,8 @@
+Metric Name,Symbol,Computed Model Value,Physiological Reference Range,Status,Unit
+Mean Arterial Pressure,MAP,95.12,90.0--100.0,PASSED,mmHg
+Mean Venous Pressure,MVP,11.85,5.0--15.0,PASSED,mmHg
+Cardiac Output,CO,4.96,4.5--5.5,PASSED,L/min
+Stroke Volume,SV,66.16,60.0--80.0,PASSED,mL
+End-Diastolic Volume,EDV,121.45,110.0--130.0,PASSED,mL
+End-Systolic Volume,ESV,55.29,40.0--60.0,PASSED,mL
+Ejection Fraction,EF,54.48,50.0--65.0,PASSED,%
