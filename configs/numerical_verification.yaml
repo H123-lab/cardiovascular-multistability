@@ -1,0 +1,20 @@
+# ========================================================================
+# Configuration: Numerical Rigor & Time-Step Convergence Validation
+# Purpose: Verifies step independence and ensures limits exclude code artifacts
+# ========================================================================
+
+solver_integration_settings:
+  algorithm: "Explicit Fourth-Order Runge-Kutta Engine (RK4 Solver)"
+  base_time_step_dt: 0.001 # Primary 1 ms tracking resolution used in manuscript
+  run_duration_tsim: 300.0 # Time provided per step to allow short-term transients to decay (s)
+
+convergence_unit_gates:
+  tolerance_threshold: 0.001 # Cycle-to-cycle numerical deviations must fall under < 0.1%
+  terminal_window_slice: 0.05 # Extract performance metrics exclusively from final 5% timeline
+
+temporal_step_refinement_matrix:
+  test_steps:
+    - 0.010              # Coarse screening checkpoint step size (seconds)
+    - 0.005              # Intermediate refinement step size (seconds)
+    - 0.001              # Fine precision baseline step size (seconds)
+  maximum_allowable_step_variance: 0.05 # Absolute calculated MAP drift margin limit (mmHg)
