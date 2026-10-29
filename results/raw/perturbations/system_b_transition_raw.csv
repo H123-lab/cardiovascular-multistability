@@ -1,0 +1,8 @@
+Time(s),V_LV(mL),P_a(mmHg),P_v(mmHg),Perturbation_Active,State_Flag
+29.998,118.421,114.542,6.421,0,State_B_Fragile_Branch
+29.999,117.104,114.451,6.428,0,State_B_Fragile_Branch
+30.000,128.814,114.412,6.435,1,Stressor_Injected_10_Percent
+30.001,128.642,114.558,6.402,0,Separatrix_Crossing_Phase
+30.002,128.310,114.841,6.345,0,Separatrix_Crossing_Phase
+42.999,45.412,165.124,5.984,0,Alternative_Attractor_Locked
+43.000,45.398,165.142,5.986,0,Alternative_Attractor_Locked
