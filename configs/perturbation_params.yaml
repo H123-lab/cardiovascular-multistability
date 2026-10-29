@@ -1,0 +1,22 @@
+# ========================================================================
+# Configuration: Transient Volumetric Perturbations Stress Protocol
+# Purpose: Evaluates state-dependent divergence within the bistable region
+# ========================================================================
+
+simulation_lock_coordinate:
+  Rsys: 1.40             # Settled afterload value inside the coexisting state range (mmHg*s/mL)
+
+acute_stressor_profile:
+  type: "Left Ventricular Volume (LVV) Perturbation Delta Spikes"
+  delta_ratio: 0.10      # 10% instant volume shift applied to active state trajectories
+  injection_time: 30.0   # Stress delivery timestamp mark (seconds)
+
+seed_initializations:
+  system_a_resilient:
+    V_lv: 120.0          # Initial Left Ventricular Volume (mL)
+    P_a: 95.0            # Initial Systemic Arterial Pressure (mmHg)
+    P_v: 12.0            # Initial Systemic Venous Pressure (mmHg)
+  system_b_switching:
+    V_lv: 55.0
+    P_a: 145.0
+    P_v: 7.0
