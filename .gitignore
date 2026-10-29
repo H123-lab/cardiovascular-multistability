@@ -1,0 +1,22 @@
+# MATLAB operational files
+*.asv
+*.mat
+*.slx
+*.mex*
+*.log
+
+# Figure outputs and local reports
+*.png
+*.pdf
+*.svg
+html/
+latex/
+
+# Python caching and environments
+__pycache__/
+*.pyc
+.env
+.venv
+env/
+venv/
+.DS_Store
