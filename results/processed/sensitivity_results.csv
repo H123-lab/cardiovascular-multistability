@@ -1,0 +1,5 @@
+Independent Controlled Constant,Symbol,Base Line Value,Tested Sweeping Bounds,Computed Local Sensitivity Index,Primary Modulating Outcome on Hysteresis Window
+Systemic Vascular Resistance,Rsys,1.0,0.5--2.0,0.684,Primary driver; expanding afterload dictates bistable bifurcations limits
+Arterial Compliance,Ca,1.5,1.0--2.5,0.182,Displaces the absolute onset location coordinates of the transition bounds
+Venous Compliance,Cv,100.0,60.0--150.0,0.081,Modulates global baseline preload distributions and overall loop area volume
+Maximum Ventricular Elastance,Emax,2.0,1.5--3.0,0.053,Adjusts the amplitude bounds of the high-pressure branch solution line
