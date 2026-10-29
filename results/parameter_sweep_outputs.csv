@@ -1,0 +1,8 @@
+Swept Parameter,Symbol,Tested Value,Resulting Mean Arterial Pressure (mmHg),Resulting Cardiac Output (L/min),Convergence Verification
+Maximum Ventricular Elastance,Emax,1.50,81.42,4.12,Converged Limit Cycle
+Maximum Ventricular Elastance,Emax,2.00,95.12,4.96,Converged Limit Cycle
+Maximum Ventricular Elastance,Emax,2.50,106.84,5.48,Converged Limit Cycle
+Maximum Ventricular Elastance,Emax,3.00,115.31,5.82,Converged Limit Cycle
+Total Systemic Arterial Compliance,Ca,1.00,92.14,4.81,Converged Limit Cycle
+Total Systemic Arterial Compliance,Ca,1.50,95.12,4.96,Converged Limit Cycle
+Total Systemic Arterial Compliance,Ca,2.00,97.35,5.04,Converged Limit Cycle
