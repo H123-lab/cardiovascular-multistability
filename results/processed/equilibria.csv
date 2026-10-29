@@ -1,0 +1,4 @@
+State Branch Name,Steady-State MAP (mmHg),Steady-State MVP (mmHg),Stroke Volume (mL),Cardiac Output (L/min),Ejection Fraction (%),Dynamical Characteristics
+State A (Lower Branch),82.34,12.02,66.16,4.96,54.48,Stable limit cycle; high compliance relaxation; resilient to low volume shifts
+State B (Alternative Branch),115.82,6.42,42.12,3.16,35.10,Stable limit cycle; elevated afterload stress; fragile to volumetric shocks
+Unstable Intermediate Saddle,98.45,9.15,51.34,3.85,42.78,Dynamically inaccessible saddle threshold; defines the basin separatrix boundary
