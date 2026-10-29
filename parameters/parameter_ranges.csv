@@ -1,0 +1,8 @@
+Parameter Name,Symbol,Lower Bound,Upper Bound,Step Size,Units,Primary Dynamical Influence
+Systemic Vascular Resistance,Rsys,0.5,2.0,0.02,mmHg*s/mL,Governs emergence and extent of bistable operating branches
+Maximum Ventricular Elastance,Emax,1.5,3.0,0.05,mmHg/mL,Modulates peak pressure and transition boundaries susceptibility
+Minimum Ventricular Elastance,Emin,0.03,0.10,0.005,mmHg/mL,Alters passive diastolic loading characteristics
+Arterial Compliance,Ca,1.0,2.5,0.05,mL/mmHg,Displaces the location and boundaries of the bistable region
+Venous Compliance,Cv,60,150,2.0,mL/mmHg,Modulates preload distributions and hysteresis magnitude
+Total Blood Volume,Vtot,4500,6000,50.0,mL,Alters preload sensitivity near state basin boundaries
+Heart Rate,HR,60,100,1.0,beats/min,Modulates filling time margins; preserves stable cycle orbits
