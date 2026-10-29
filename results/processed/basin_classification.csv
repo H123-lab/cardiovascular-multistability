@@ -1,0 +1,5 @@
+Initialization Coordinate Index,Initial V_LV Seed (mL),Initial P_a Seed (mmHg),Initial P_v Seed (mmHg),Attractor Target Destination,Final Stabilized MAP (mmHg),Classification Category
+1,120.0,95.0,12.0,State A Branch,82.34,Compensated Normal Preload Basin Core
+2,140.0,80.0,14.0,State A Branch,82.34,High Preload Expansion Basin Core
+3,55.0,145.0,7.0,State B Branch,115.82,Fragile Hidden-Risk Phenotype Basin Core
+4,45.0,160.0,6.0,State B Branch,115.82,Advanced Hypovolemic Stress Basin Core
