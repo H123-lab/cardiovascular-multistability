@@ -1,0 +1,8 @@
+Relative Time Post-Stress (s),System A MAP (mmHg),System A Trajectory Vector,System B MAP (mmHg),System B Trajectory Vector,Stressor Status
+-1.000,82.34,Stable Limit Cycle Branch,115.82,Fragile Limit Cycle Branch,Pre-Perturbation Baseline
+0.000,80.01,Volumetric Expansion Spike,114.41,Volumetric Expansion Spike,10% LVV Stress Injected
+1.000,81.12,Attractor Basin Relaxation,116.14,Separatrix Crossing Transference,Transient Phase
+3.000,82.01,Attractor Basin Relaxation,124.52,Alternative Basin Pull,Transient Phase
+5.000,82.28,Limit Cycle Attained,145.12,Alternative Basin Pull,Transient Phase
+8.500,82.34,Steady State Restored,158.41,Alternative Basin Pull,System A Fully Resilient
+13.000,82.34,Steady State Restored,165.14,Stable Limit Cycle Branch,System B Trajectory Failure
