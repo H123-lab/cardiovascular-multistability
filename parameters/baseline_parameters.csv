@@ -1,0 +1,10 @@
+Parameter Name,Symbol,Baseline Value,Units,Physiological Context
+Heart Rate,HR,75,beats/min,Baseline adult resting state pacing frequency
+Cardiac Cycle Duration,T,0.80,s,Derived cycle length (60/HR); non-independent parameter
+Maximum Ventricular Elastance,Emax,2.0,mmHg/mL,Peak systolic contractility index
+Minimum Ventricular Elastance,Emin,0.06,mmHg/mL,Passive ventricular diastolic stiffness boundary
+Unstressed Ventricular Volume,V0,10,mL,Left ventricular reference volume intercept at zero pressure
+Systemic Vascular Resistance,Rsys,1.0,mmHg*s/mL,Global afterload; primary control parameter
+Arterial Compliance,Ca,1.5,mL/mmHg,Vascular capacity of large systemic arterial reservoirs
+Venous Compliance,Cv,100,mL/mmHg,Venous compliance reservoir governing total preload reserve
+Total Blood Volume,Vtot,5000,mL,Conserved total blood volume across closed-loop network
