@@ -1,0 +1,3 @@
+Perturbation Scenario,Initial V_LV Seed (mL),Initial P_a Seed (mmHg),Initial P_v Seed (mmHg),Post-Stress Outcome,Settling Duration (s)
+System A (Resilient Point),120.0,95.0,12.0,Complete recovery to original baseline attractor loop,8.5
+System B (Fragile Point),55.0,145.0,7.0,Irreversible transition across separatrix to State B branch,13.0
