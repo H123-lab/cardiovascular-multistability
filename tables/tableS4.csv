@@ -1,0 +1,7 @@
+Numerical Solver Metric,Enforced Configuration Value,Units,Algorithmic Purpose / Rationale
+Solver Architecture,Explicit 4th-Order Runge-Kutta (RK4),None,Ensures numerical stability during non-smooth valve transitions
+Temporal Step Size (dt),0.001,seconds,Provides 800 discrete steps per cardiac cycle for time-varying elastance precision
+Run Duration (tsim),300.0,seconds,Allows short-term computational transients to decay to confirm stable orbits
+Convergence Limit Gate,0.001,None,Cycle-to-cycle numerical deviations must fall below strict < 0.1% tolerance
+Terminal Metric Window,0.05,None,Extracts hemodynamic averages exclusively from the final 5% timeline
+Max Discretization Variance,0.0263,mmHg,Maximum calculated MAP drift between dt=10ms and dt=1ms step sizes
