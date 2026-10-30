@@ -1,0 +1,11 @@
+Parameter Name,Symbol,Baseline Value,Units,Literature Provenance
+Heart Rate,HR,75,beats/min,Guyton & Hall (2021)
+Cardiac Cycle Duration,T,0.80,s,Derived (60/HR)
+Maximum Ventricular Elastance,Emax,2.0,mmHg/mL,Suga & Sagawa (1974)
+Minimum Ventricular Elastance,Emin,0.06,mmHg/mL,Heldt et al. (2014)
+Unstressed Ventricular Volume,V0,10,mL,Shi & Korakianitis (2006)
+Arterial Compliance,Ca,1.5,mL/mmHg,Yin & Liu (1989)
+Venous Compliance,Cv,100,mL/mmHg,Guyton & Hall (2021)
+Aortic Valve Resistance,R_av,0.01,mmHg*s/mL,Shi & Korakianitis (2006)
+Mitral Valve Resistance,R_mv,0.008,mmHg*s/mL,Shi & Korakianitis (2006)
+Systemic Vascular Resistance,Rsys,1.0,mmHg*s/mL,Chemla et al. (2003)
