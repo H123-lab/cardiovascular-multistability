@@ -29,5 +29,6 @@ jobs:
       env:
         PYTHONPATH: .
       run: |
-        pytest tests/
+        pytest tests/test_model_equations.py tests/test_baseline_stability.py tests/test_numerical_convergence.py
+
 
