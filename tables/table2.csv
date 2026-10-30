@@ -1,0 +1,8 @@
+State Metric Name,Symbol,State A (Lower Branch),State B (Alternative Branch),Unit,Relative Branch Variance (%)
+Mean Arterial Pressure,MAP,82.34,115.82,mmHg,40.66
+Mean Venous Pressure,MVP,12.02,6.42,mmHg,-46.59
+Cardiac Output,CO,4.96,3.16,L/min,-36.29
+Stroke Volume,SV,66.16,42.12,mL,-36.34
+End-Diastolic Volume,EDV,121.45,117.10,mL,-3.58
+End-Systolic Volume,ESV,55.29,74.98,mL,35.61
+Ejection Fraction,EF,54.48,35.97,%,-33.98
