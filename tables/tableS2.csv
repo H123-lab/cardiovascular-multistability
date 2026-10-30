@@ -1,0 +1,4 @@
+Bifurcation Point Index,Control Parameter,Critical Saddle-Node Boundary,Units,Resulting Branch Transition Profile
+1,Rsys,1.60,mmHg*s/mL,Forward continuation limit cycle collapse; snap jump to State B
+2,Rsys,1.20,mmHg*s/mL,Reverse continuation limit cycle collapse; drop down to State A
+3,Hysteresis Width,0.40,mmHg*s/mL,Coexisting parameter interval; path-dependent memory loop span
