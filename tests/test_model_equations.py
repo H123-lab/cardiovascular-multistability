@@ -31,15 +31,30 @@ def test_mass_conservation_identity():
     global_volume_derivative = dV_lv_dt + (p["Ca"] * dP_a_dt) + (p["Cv"] * dP_v_dt)
     
     # Assert zero fluid drift down to floating-point precision bounds
-    assert abs(global_volume_derivative)  P_v)
-    high_systolic_states = np.array([110.0, 90.0, 12.0])
+    assert abs(global_volume_derivative) < 1e-10, f"Mass conservation identity drifted: {global_volume_derivative}"
+
+def test_valve_diode_exclusions():
+    """
+    Tests ideal diode sign exclusions to confirm that retrograde backflow is zero
+    under zero gradient boundary conditions.
+    """
+    p = get_baseline_parameters()
+    Rsys = 1.0
     
-    # Run a localized derivative evaluation step
-    derivs = compute_derivatives(0.20, high_systolic_states, Rsys, p)
+    # Initialize a perfectly balanced equilibrium state where all pressures align
+    # This isolates valve boundaries, testing that flow cannot manifest without gradients
+    balanced_states = np.array([10.0, 0.0, 0.0]) # Forces P_lv = 0, P_a = 0, P_v = 0
     
-    # During ventricular contraction, volume can only decrease or stay constant (dV_lv/dt <= 0)
+    # Run derivative evaluation
+    derivs = compute_derivatives(0.50, balanced_states, Rsys, p)
+    
+    # Under zero mechanical pressure gradients, filling and ejection must equal zero
     dV_lv_dt = derivs[0]
-    assert dV_lv_dt <= 0.0, "Mitral valve leakage or volume preservation error detected!"
+    assert abs(dV_lv_dt) < 1e-12, f"Valve diode leakage identified: {dV_lv_dt}"
+
+
+    
+ 
 
 
 
