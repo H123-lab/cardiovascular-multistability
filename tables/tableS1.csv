@@ -1,0 +1,7 @@
+Swept Parameter,Symbol,Tested Baseline Value,Explored Lower Bound,Explored Upper Bound,Increment Step Size,Units
+Systemic Vascular Resistance,Rsys,1.0,0.5,2.0,0.02,mmHg*s/mL
+Maximum Ventricular Elastance,Emax,2.0,1.5,3.0,0.05,mmHg/mL
+Minimum Ventricular Elastance,Emin,0.06,0.03,0.10,0.005,mmHg/mL
+Total Systemic Arterial Compliance,Ca,1.5,1.0,2.5,0.05,mL/mmHg
+Systemic Venous Compliance,Cv,100.0,60.0,150.0,2.0,mL/mmHg
+Total Blood Volume,Vtot,5000.0,4500.0,6000.0,50.0,mL
