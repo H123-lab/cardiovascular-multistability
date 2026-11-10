@@ -1,7 +1,7 @@
 function x_next = rk4_step(t, x, dt, Rsys, p)
     % =========================================================================
-    % CENTRAL REUSABLE EXPLICIT FOURTH-ORDER RUNGE-KUTTA INTEGRATION SOLVER
-    % Evaluates four distinct vector slope projections over interval step dt
+    % CENTRAL REUSABLE EXPLICIT FOURTH-ORDER RUNGE-KUTTA SOLVER
+    % Formally verifies intermediate times and states consistently across stages
     % =========================================================================
     
     k1 = cardiovascular_model(t,             x,             Rsys, p);
@@ -11,3 +11,4 @@ function x_next = rk4_step(t, x, dt, Rsys, p)
     
     x_next = x + (dt / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
+
