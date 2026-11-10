@@ -1,0 +1,5 @@
+Time_Step_s,Integrated_MAP_mmHg,Relative_Deviation_Status
+0.0100,95.1482,Reference Baseline Loop
+0.0050,95.1274,-0.0218%
+0.0010,95.1219,-0.0276% (Manuscript Temporal Target)
+0.0001,95.1219,0.0000% (Ultra-Fine Step Convergence)
