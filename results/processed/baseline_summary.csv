@@ -1,0 +1,7 @@
+Metric_Parameter,Calculated_Value,Unit,Physiological_Plausibility_Status
+Mean_Arterial_Pressure_MAP,95.1219,mmHg,CONCORDANT (Reference Range: 90-100 mmHg)
+Stroke_Volume_SV,81.9328,mL,CONCORDANT (Reference Range: 60-90 mL)
+Cardiac_Output_CO,5.1208,L/min,CONCORDANT (Reference Range: 4.0-6.0 L/min)
+Left_Ventricular_Volume_Max,139.8142,mL,CONCORDANT (Reference Range: 100-150 mL)
+Left_Ventricular_Volume_Min,57.8814,mL,CONCORDANT (Reference Range: 40-80 mL)
+Global_Stressed_Volume_Invariance,1452.5000,mL,AIRTIGHT MESH (Zero Hydraulic Drift Enforced)
