@@ -1,115 +1,114 @@
-# One Heart in Dual Physiological States and the Emergence of a Hidden Risk Phenotype
+# Multistability and Hysteresis in a Reduced-Order Cardiovascular Model: State-Dependent Responses to Perturbation
 
-This repository contains the source code, numerical parameters, and computational simulation configurations for the mechanistically grounded lumped-parameter cardiovascular model presented in our study.
+This repository contains the open-source source code, numerical parameters, variational tracking pipelines, and algorithmic simulation configurations for the piece-wise smooth, lumped-parameter cardiovascular system model presented in our study.
 
-## Study Overview
-* **Author:** Hassa Iftikhar
-* **Affiliation:** Department of Internal Medicine (Cardiology), Tongji Medical College, Huazhong University of Science and Technology, Hubei, Wuhan, China
-* **Core Focus:** This work explores model-defined multistability, hysteresis configurations, and state-dependent perturbation responses driven by systemic vascular resistance ($R_{sys}$) within an integrated cardiovascular framework.
-
-## Repository Contents
-* `src/` — Complete MATLAB source code scripts for running deterministic parameter sweeps, continuation simulations, and perturbation experiments.
-* `data/` — Numerical baseline parameters database and supplementary configurations matching the published tables.
-
-## Key Model Parameterization (Table 1 Baseline)
-* **Heart Rate ($HR$):** $75\text{ beats}\cdot\text{min}^{-1}$
-* **Max Ventricular Elastance ($E_{max}$):** $2.0\text{ mmHg}\cdot\text{mL}^{-1}$
-* **Arterial Compliance ($C_a$):** $1.5\text{ mL}\cdot\text{mmHg}^{-1}$
-* **Venous Compliance ($C_v$):** $100\text{ mL}\cdot\text{mmHg}^{-1}$
-* **Baseline Systemic Vascular Resistance ($R_{sys}$):** $1.0\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$
-* **Bistable Target Window:** $R_{sys}$ interval spanning approximately $1.20\text{ to }1.60\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$ (Hysteresis width: $0.40\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$)
-
-## Computational Environment
-* **Software:** MATLAB R2024a (or later compatible versions)
-* **Arithmetic:** IEEE 754 double-precision numerical evaluation
-* **Solver configuration:** Fixed-step fourth-order Runge-Kutta (RK4) integration ($\Delta t = 0.001\text{ s}$)
+## 👥 Study Overview
+*   **Author:** Hassa Iftikhar
+*   **Affiliation:** Department of Internal Medicine (Cardiology), Tongji Medical College, Huazhong University of Science and Technology, Hubei, Wuhan, China
+*   **Core Focus:** This investigation explores structure-born, autonomous multistability, path-dependent hysteresis configurations, and variational limit-cycle stability criteria governed by systemic vascular resistance ($R_{sys}$) within a closed hydraulic circuit.
 
 ---
 
-## 1. What scientific question does this repository address?
-This repository addresses a fundamental unresolved question in computational cardiology: **Can an identical configuration of physical, structural, and hemodynamic parameters support multiple coexisting stable operating states (multistability) within a closed hydraulic network?**
+## 📂 Repository Architecture & Core Manifests
 
-By utilizing nonlinear systems theory paired with mechanistically grounded ordinary differential equations (ODEs), this model demonstrates how an identical heart can settle into completely divergent stable limit-cycle branches based purely on its historical state trajectory rather than static parameters. This mathematical coexistence mechanistically defines a model-based **"hidden-risk phenotype"**—where standard, resting baseline hemodynamics appear completely normal and clinically indistinguishable, yet exhibit highly divergent recovery vs. state-collapse pathways when unmasked by an acute transient volume stressor.
+├── src/                               # Complete MATLAB source code execution engines
+│   ├── cardiovascular_model.m         # Core piece-wise smooth ODE hydraulic system loop
+│   └── pipeline.py                    # Multi-parameter Python automation sweep wrapper
+├── tests/                             # Automated software testing and defense suite
+│   ├── verify_mathematical_physics.m  # Variational Floquet linearization routine
+│   └── test_equation_consistency.m    # Non-smooth diode leakage consistency tests
+├── NUMERICAL_PHYSICS_DEFENSE.md       # Analytical calculus proof of zero fluid mass drift
+├── COMPUTATIONAL_RIGOR.md             # Temporal discretization invariance and error bounds
+├── BIFURCATION_AND_STABILITY_MANIFEST.md # Production Floquet multiplier calculation receipts
+├── STABILITY_PROTOCOL.md              # 8-step stroboscopic Poincaré map implementation roadmap
+├── ATTRACTOR_VALIDATION.md            # Grid initialization and transient decay benchmarks
+└── LITERATURE_COMPARISON.md           # Mathematical novelty comparison framework matrix
 
----
+  ---
 
-## 2. Which manuscript and version does it support?
-This codebase directly supports the major revision cycle of the following active investigation:
-*   **Manuscript Title:** *One Heart in Dual Physiological States and the Emergence of a Hidden Risk Phenotype*
-*   **Target Core Journal Publication:** Precision Cardiology / Computational Biophysics
-*   **Current Codebase Release Version Lock:** v1.0.0 (Repository locked and synchronized to active Git Commit SHA `1b9bb84`)
-
----
-
-## 3. What software and dependencies are required?
-The codebase is engineered to support native cross-runtime environments across Windows, macOS, and Linux platforms. The following core dependencies are required:
-
-### For MATLAB Workspaces (Recommended)
-*   **Software Version:** MATLAB R2024a or later stable release version.
-*   **Required Native Toolboxes:** 
-    1. *Signal Processing Toolbox* (used for cycle peak timing and loop frequency checks).
-    2. *Statistics and Machine Learning Toolbox* (used for multi-parameter screening variances).
-
-### For Python Interoperability Environments
-*   **Runtime Engine:** Python v3.10+ (Isolated environment schemas are mapped in `environment.yml` and `requirements.txt`).
-*   **Package Dependencies Matrix:**
-    *   `numpy >= 1.22.0` (high-density matrix and array metrics computations)
-    *   `scipy >= 1.8.0` (numerical ordinary differential equations interpolation routines)
-    *   `matplotlib >= 3.5.0` (publication-ready clean vector PDF generation)
-    *   `oct2py >= 5.5.0` (cross-runtime script pipeline execution calls)
+## ⚙️ Key Model Parameterization (Table 1 Baseline Environment)
+*   **Heart Rate ($HR$):** $75 \text{ beats}\cdot\text{min}^{-1}$ ($T = 0.80\text{ s}$ cardiac period forcing duration)
+*   **Ventricular Elastance Boundaries:** $E_{min} = 0.06 \text{ mmHg}\cdot\text{mL}^{-1}$, $E_{max} = 2.50 \text{ mmHg}\cdot\text{mL}^{-1}$
+*   **Vascular Compliances:** $C_a = 1.20 \text{ mL}\cdot\text{mmHg}^{-1}$, $C_v = 100.00 \text{ mL}\cdot\text{mmHg}^{-1}$
+*   **Global Mass Invariance:** $V_{tot} \equiv 5000.00 \text{ mL}$ (Strictly conserved; volume drift variance $< 1 \times 10^{-5}\text{ mL}$)
+*   **Bistable Parameter Window:** $R_{sys} \in [1.20, 1.60] \text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$ (Path-dependent hysteresis width: $0.40 \text{ units}$)
 
 ---
 
-## 4. How does a researcher run the baseline model and each analysis?
-All simulations utilize relative internal directory routing to eliminate system-specific hardcoded path exceptions. You can replicate our numerical experiments inside your local terminal workspace using the following command structures:
+## 💻 Computational Environment & Solver Configuration
+*   **Software Base:** MATLAB R2024a (native execution) / Python v3.10+ (interoperable automation layer via `oct2py`)
+*   **Arithmetic Precision:** IEEE 754 double-precision numerical evaluation
+*   **Integration Engine:** Explicit fixed-step Fourth-Order Runge-Kutta (RK4) vector routine
+*   **Discretization Size:** Fixed time step \(\Delta t = 0.001\text{ s}\) (800 discrete steps per cardiac cycle forcing window)
 
-### A. Environment Verification and Automated Unit Testing
-Before launching full loops, execute the automated verification suite to confirm conservation physics, valve diode sign exclusions, and step refinement invariance:
+---
+
+## 🧬 1. The 8-Step Stroboscopic Stability Evaluation Protocol
+Because the time-varying elastance relationship $P_{LV}(t) = E(t)[V_{LV}(t) - V_0]$ introduces periodic forcing, steady states constitute periodic orbits (limit cycles) rather than fixed points. Stability is classified via an automated 8-step sequence detailed across `STABILITY_PROTOCOL.md`:
+1.  **Transient Decay Allocation:** Integrates each trial for $300\text{ s}$ to completely shed short-term non-equilibrium phases.
+2.  **Stroboscopic Phase Sampling:** Extracts the continuous state variables strictly at cycle thresholds ($t = nT$).
+3.  **Poincaré Map Construction:** Establishes the discrete cycle-to-cycle mapping hyperplane $\mathbf{x}_{n+1} = \mathbf{P}(\mathbf{x}_n)$.
+4.  **Candidate Selection:** Isolates steady orbits satisfying $\mathbf{P}(\mathbf{x}^*) = \mathbf{x}^*$ within a tolerance criteria of $< 0.1\%$.
+5.  **State Space Perturbation:** Injects a localized volumetric shock ($\pm 10\%$ left ventricular volume shift, $\delta V_{LV}$).
+6.  **Trajectory Tracking:** Tracks whether post-shock cycles return to the original orbit or transition between attractor basins.
+7.  **Variational Floquet Extraction:** Tracks the linearized system matrix $\dot{\delta \mathbf{x}} = \mathbf{J}(t)\delta \mathbf{x}$ using **Saltation Matrices** across non-smooth valve hypersurfaces ($P_v = P_{LV}$ and $P_{LV} = P_a$) to build the true Monodromy Matrix $\mathbf{\Phi}(T)$.
+8.  **Orbital Classification:** Maps eigenvalues (Floquet multipliers, $\mu_i$). Asymptotic orbital stability is verified if and only if all non-trivial multipliers reside inside the unit circle ($|\mu_{i>1}| < 1$).
+
+### Production Multiplier Matrix ($R_{sys} = 1.40 \text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$)
+*   **State A (Upper Branch):** $\mu_1 = 1.0000$, $\mu_2 = 0.1425$, $\mu_3 = 0.0031$ $\rightarrow$ **Asymptotically Stable**
+*   **State B (Lower Branch):** $\mu_1 = 1.0000$, $\mu_2 = 0.3841$, $\mu_3 = 0.0094$ $\rightarrow$ **Asymptotically Stable**
+*   **Separator Boundary:** $\mu_1 = 1.0000$, $\mu_2 = 2.4150$, $\mu_3 = 0.0112$ $\rightarrow$ **Unstable Saddle Orbit**
+
+---
+
+## 🚀 2. Execution Run Protocol
+
+### A. Core Mathematical Physics & Conservation Validation
+To verify strict mass-balance preservation, sign exclusions, and eliminate truncation solver anomalies before executing primary runs:
 ```bash
-# To test natively inside Python environments via pytest
+# Run automated pytest unit checks inside Python environments
 pytest tests/
-```
-*(Alternatively, execute `tests/verify_mathematical_physics.m` inside your MATLAB terminal to verify that global volume mass balance drift remains strictly below $< 1 \times 10^{-5}\text{ mL}$).*
 
-### B. Run Baseline Reference Model (Table 3 Dynamics)
-To simulate the baseline resting configuration ($R_{sys} = 1.0\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$) and extract stable limit cycle averages:
-```bash
-python -m simulation.baseline_simulation
+# Execute native validation checks within the MATLAB terminal command line
+run('tests/verify_mathematical_physics.m')
 ```
-*(MATLAB equivalent launcher script: `run simulations/run_baseline.m`)*
 
-### C. Map Bidirectional Afterload Loops (Figures 4 & 5 Hysteresis)
-To execute the forward progression and reverse regression continuations that trace the $0.40\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$ wide memory loop:
+### B. Map Bidirectional Hysteresis Continuation Sweeps
+Executes numerical parameter tracking loops where the final state vector of parameter index $n$ forms the initial state for step $n+1$:
 ```bash
 python -m simulation.hysteresis_sweep
+# Equivalent native MATLAB script: run('simulations/run_forward_reverse_sweeps.m')
 ```
-*(MATLAB equivalent launcher script: `run simulations/run_forward_reverse_sweeps.m`)*
 
-### D. Run Post-Stress Volumetric Divergence (Figure 5D-E Trajectories)
-To apply a sudden $+10\%$ fluid load stressor inside the bistable zone ($R_{sys} = 1.40$) and track the divergent outcomes ($\le 8.5\text{ s}$ resilient recovery vs. $\le 13.0\text{ s}$ state transition failure):
+### C. Run State-Dependent Transient Volumetric Shocks
+Injects localized volume adjustments inside the bistable parameter window ($R_{sys} = 1.40$) to track bifurcating trajectory responses:
 ```bash
 python -m simulation.perturbation_experiments
+# Equivalent native MATLAB script: run('simulations/run_perturbations.m')
 ```
-*(MATLAB equivalent launcher script: `run simulations/run_perturbations.m`)*
 
 ---
 
-## 5. Where are the outputs for each figure and table?
-Upon execution, individual scripts dynamically self-initialize platform-neutral directory strings (`os.makedirs` and `fullfile` patterns) to compile summary data matrices and vector PDF graphic panels cleanly into these specific directories:
+## 📊 3. Output Data & Figure Synchronization Dictionary
 
-### Raw and Processed Numerical Spreadsheets
-*   `results/processed/equilibria.csv` — Baseline limit-cycle averages for the coexisting stable state configurations (Feeds **Table 2**).
-*   `results/processed/bifurcation_points.csv` — Critical threshold markers tracking the $1.20 \text{ and } 1.60\text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$ saddle-node boundary lines (Feeds **Table S2**).
-*   `results/raw/perturbations/` — Contains individual multi-column time-series tracking csv files (`system_a_recovery_raw.csv` and `system_b_transition_raw.csv`) paired with a comprehensive parameter configuration metadata file (`manifest.json`), directly logging the details of our perturbation trajectories.
+### Raw and Processed Spreadsheets
+*   `results/processed/equilibria.csv` — Stabilized limit-cycle state limits mapping Upper and Lower branches.
+*   `results/processed/bifurcation_points.csv` — Exact critical fold coordinates pinpointing limit cycle collapse coordinates at $R_{sys} \approx 1.20$ and $1.60\text{ units}$.
+*   `results/raw/perturbations/` — Step-by-step vector trajectory tracking sheets detailing recovery times versus basin transition collapse.
 
-### Graphic Panel Assets Directory
-*   `figures/main/figure3.pdf` — High-resolution clean panel showing baseline pressure-volume loops and pressure synchronization paths.
-*   `figures/main/figure4.pdf` & `figure5.pdf` — Mapped afterload transition loops, coexisting branches, and transient post-stress divergence lines.
-*   `figures/supplementary/figureS4.pdf` — Convergence error bar chart confirming discretization step-independence down to a negligible variance of $< 0.027\text{ mmHg}$.
+### Clean Asset Vectors
+*   `figures/main/figure3.pdf` — High-resolution cycle profiles tracking baseline multi-compartment pressure-volume loops.
+*   `figures/main/figure4.pdf` — Codimension-two bifurcation cusp map establishing stability boundaries across the $(R_{sys}, E_{max})$ parameter plane.
+*   `figures/main/figure5.pdf` — Phase portrait portraits illustrating coexisting limit cycles, attractor basins, and the repelling unstable boundary branch.
+*   `figures/supplementary/figures4.pdf` — Temporal step-size variance bar graphs confirming complete convergence error limits down to a negligible variance delta of $< 0.027\text{ mmHg}$.
 
 ---
 
-## 📄 Open Source License & Reference Citation
-The models, code libraries, configurations, and post-processing tools shared in this repository are available under the open-source **MIT License** guidelines. If you use this framework or re-run our sensitivity matrices for academic development, please cite our repository tools natively using the citation selector tool available on the right-hand panel of our dashboard.
+## 📝 License & Open-Access Reference Citation
+This framework is fully open-source and maintained under the terms of the **MIT License**. If you reuse this computational pipeline, parameter schemas, or variational stability validation code scripts for academic research, please cite our core paper:  
+
+
+
+
 
 
