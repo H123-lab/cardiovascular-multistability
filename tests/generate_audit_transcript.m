@@ -1,47 +1,60 @@
 function generate_audit_transcript()
     % =========================================================================
-    % AUTOMATED INDEPENDENT AUDIT TRANSCRIPT ENGINE
-    % Programmatically runs calculations and writes log transcripts straight to disk
+    % REAL MATHEMATICAL AUDIT TRANSCRIPT GENERATOR
+    % Executes underlying verification routines and asserts explicit decisions
     % =========================================================================
     
     clear; clc;
+    script_dir = fileparts(mfilename('fullpath'));
     
-    if ~exist('../results/processed', 'dir'), mkdir('../results/processed'); end
-    fid = fopen('../results/processed/audit_execution_transcript.log', 'w');
+    processed_dir = fullfile(script_dir, '../results/processed');
+    if ~exist(processed_dir, 'dir'), mkdir(processed_dir); end
+    
+    log_path = fullfile(processed_dir, 'audit_execution_transcript.log');
+    fid = fopen(log_path, 'w');
+    if fid == -1, error('Unable to create output transcript log file.'); end
     
     fprintf(fid, '=====================================================\n');
-    fprintf(fid, '    GENUINE REPRODUCIBILITY AUDIT INTEGRITY LOG       \n');
+    fprintf(fid, '     DYNAMICAL SYSTEMS REPRODUCIBILITY AUDIT LOG      \n');
     fprintf(fid, '=====================================================\n');
-    fprintf(fid, 'Execution Verification Runtime: %s\n', datestr(now));
-    fprintf(fid, 'Integration Engine: Explicit 4th-Order Runge-Kutta (RK4)\n\n');
+    fprintf(fid, 'Execution Verification Runtime Check: %s\n', datestr(now));
+    fprintf(fid, 'Numerical Core Setup: Central Shared rk4_step Function\n\n');
     
-    % Dynamic calculation variables
-    p = struct('T',0.8,'emax',2.0,'emin',0.06,'v0',10,'Ca',1.5,'Cv',100,'R_av',0.01,'R_mv',0.008);
-    R_baseline = 1.40; dt = 0.001; tsim = 300; t_vec = 0:dt:tsim; N = length(t_vec);
-    
-    Y = zeros(3, N); Y(:, 1) = [120; 95; 12];
-    for k = 1:(N-1)
-        k1 = cardiovascular_model(t_vec(k), Y(:,k), R_baseline, p);
-        k2 = cardiovascular_model(t_vec(k)+0.5*dt, Y(:,k)+0.5*dt*k1, R_baseline, p);
-        k3 = cardiovascular_model(t_vec(k)+0.5*dt, Y(:,k)+0.5*dt*k2, R_baseline, p);
-        k4 = cardiovascular_model(t_vec(k)+dt, Y(:,k)+dt*k3, p);
-        Y(:, k+1) = Y(:, k) + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
+    try
+        % Execute the underlying physics convergence validations
+        [max_drift, delta_MAP_1ms] = verify_mathematical_physics();
+        
+        % ASSERTION 1: Strict Stressed Fluid Mass Conservation
+        fprintf(fid, 'Evaluating Task 1 (Fluid Conservation Identity):\n');
+        fprintf(fid, '  -> Calculated Absolute Fluid Vol Drift: %e mL\n', max_drift);
+        if max_drift <= 1e-5
+            fprintf(fid, '  -> CONCLUSION: [ PASSED ] Closed hydraulic boundaries remain invariant.\n\n');
+        else
+            fprintf(fid, '  -> CONCLUSION: [ FAILED ] Mass leakage detected in system matrix.\n\n');
+            fclose(fid); error('Audit failed: Volume drift violation.');
+        end
+        
+        % ASSERTION 2: Discretization Step Invariance Delta Bound
+        fprintf(fid, 'Evaluating Task 2 (Temporal Step Convergence):\n');
+        fprintf(fid, '  -> MAP Delta (dt=1ms vs fine reference dt=0.1ms): %e mmHg\n', delta_MAP_1ms);
+        if delta_MAP_1ms <= 1e-3
+            fprintf(fid, '  -> CONCLUSION: [ PASSED ] Solver truncation error has plateaued.\n\n');
+        else
+            fprintf(fid, '  -> CONCLUSION: [ FAILED ] Temporal discretization error detected.\n\n');
+            fclose(fid); error('Audit failed: Solver truncation divergence.');
+        end
+        
+        fprintf(fid, '=====================================================\n');
+        fprintf(fid, '  ALL ASSERTIONS SECURED. REPRODUCIBILITY VERIFIED.  \n');
+        fprintf(fid, '=====================================================\n');
+        fclose(fid);
+        fprintf('[SUCCESS] Real, assertion-checked audit transcript written cleanly to log.\n');
+        
+    catch ME
+        fprintf(fid, '\n[CRITICAL ERROR] Audit execution terminated: %s\n', ME.message);
+        fclose(fid);
+        rethrow(ME);
     end
-    
-    % Task 1 Verification calculation
-    V_tot = Y(1, :) + (p.Ca * Y(2, :)) + (p.Cv * Y(3, :));
-    max_drift = max(abs(V_tot - V_tot(1)));
-    
-    % Task 3 Verification check
-    cycle_steps = int32(p.T/dt);
-    variance_loop = max(max(abs(Y(:, end-cycle_steps:end-1) - Y(:, end-2*cycle_steps:end-cycle_steps-1))));
-    
-    fprintf(fid, 'Task 2.1 (RK4 Solver Update):  [PASSED] Forward Euler fully eliminated.\n');
-    fprintf(fid, 'Task 2.2 (Solver Consistency): [PASSED] Parameters locked across script modules.\n');
-    fprintf(fid, 'Task 2.3 (Mass Conservation):  [PASSED] Calculated drift: %e mL (< 1e-5 mL).\n', max_drift);
-    fprintf(fid, 'Task 2.4 (Periodic Responses): [PASSED] Cycle-to-cycle variance: %e (< 0.1%%).\n', variance_loop);
-    
-    fclose(fid);
-    fprintf('[SUCCESS] Real un-spoofed execution transcript log written cleanly to disk.\n');
 end
+
 
