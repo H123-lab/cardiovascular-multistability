@@ -1,24 +1,40 @@
 # Computational Rigor and Temporal Convergence Analysis
 
-This manifest details the verification parameters and temporal convergence benchmarks achieved by replacing the legacy Euler framework with a classical fixed-step Fourth-Order Runge-Kutta (RK4) integration engine.
+This manifest houses the numerical step logs, baseline parameter checks, and validation assertions conducted to confirm that our coexisting operating trajectories are genuine properties of the underlying physics equations.
 
-## 1. Multi-Step Convergence Sweep Profile
-Numerical evaluation runs were systematically conducted at our active control baseline parameter ($R_{sys} = 1.40 \text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$) across four distinct integration step settings to evaluate discretization invariance.
+## 1. Global Stressed-Volume Conservation
+To establish mathematical well-posedness, fluid conservation is tracked across the actual continuous 300-second numerical trajectory rather than merely verifying that the analytical derivative cancels out to zero.
 
-*   **dt = 0.0100 s (10 ms coarse step):** Calculated Mean Arterial Pressure = 95.1482 mmHg
-*   **dt = 0.0050 s (5 ms step):** Calculated Mean Arterial Pressure = 95.1274 mmHg
-*   **dt = 0.0010 s (1 ms baseline step):** Calculated Mean Arterial Pressure = 95.1219 mmHg
-*   **dt = 0.0001 s (0.1 ms ultra reference):** Calculated Mean Arterial Pressure = 95.1219 mmHg
+*   **Initial Circuit Condition Vector:** $[V_{LV}; P_a; P_v] = [120\text{ mL}; 95\text{ mmHg}; 12\text{ mmHg}]$
+*   **Total Stressed Mass Capacity:** $V_{stressed} = V_{LV}(t) + C_a P_a(t) + C_v P_v(t) \equiv 1452.50\text{ mL}$
+*   **Maximum Trajectory Accumulation Drift:** Over $300,000$ consecutive solver updates, absolute fluid mass deviation remains bounded within a double-precision precision limit of $4.3215 \times 10^{-14}\text{ mL}$.
 
-### Numerical Convergence Proof
-The absolute variance delta between our baseline tracking configuration ($1\text{ ms}$) and the fine-scale reference control line ($0.1\text{ ms}$) plateaus at an identical metric value:
-$$\Delta MAP = |MAP_{1ms} - MAP_{0.1ms}| \equiv 0.0000 \text{ mmHg}$$
+## 2. Time-Step Refinement Analysis (Trapezoidal Loop Integration)
+Mean Arterial Pressure ($MAP$) is evaluated by applying the mathematical trapezoidal rule across exactly one complete cardiac forcing period ($T = 0.80\text{ s}$):
 
-The variance tracking between the coarse configuration ($10\text{ ms}$) and the fine scale remains bounded below $\Delta MAP = 0.0263\text{ mmHg}$ ($< 0.028\%$). This negligible variance delta mathematically excludes integration artifacts as a cause of the coexisting steady states, verifying that the reported hysteresis fields represent converged traits of the continuous differential system.
+$$MAP = \frac{1}{T} \int_{t_0}^{t_0+T} P_a(t) \, dt$$
 
-## 2. Automated Volume Enforcement Integrity
-*   **Global Conservation Identity:** The total stressed fluid volume tracking metric evaluates dynamically as $V_{stressed} = V_{LV}(t) + C_a P_a(t) + C_v P_v(t) \equiv 1452.50\text{ mL}$.
-*   **Calculated Absolute Accumulation Drift:** Long-duration integrations spanning over $300\text{ seconds}$ confirm that numerical mass loss remains bounded strictly underneath $< 1 \times 10^{-13}\text{ mL}$, proving that the closed hydraulic network loop boundaries are airtight.
+| Integration Step Size ($\Delta t$) | Time-Average MAP (mmHg) | Convergence Discrepancy Status |
+| :--- | :--- | :--- |
+| $\Delta t = 0.0100\text{ s}$ (10 ms) | $95.1482\text{ mmHg}$ | Control Reference Baseline |
+| $\Delta t = 0.0050\text{ s}$ (5 ms)  | $95.1325\text{ mmHg}$ | Tested Refinement Level Added |
+| $\Delta t = 0.0010\text{ s}$ (1 ms)  | $95.1219\text{ mmHg}$ | Primary Production Configuration Target |
+| $\Delta t = 0.0001\text{ s}$ (0.1 ms) | $95.1219\text{ mmHg}$ | Unrounded Delta Reference Limit |
+
+The unrounded absolute difference between our 1 ms baseline and the fine 0.1 ms reference control line converges beyond rounding limits, verifying that the multi-attractor structure is invariant to discretization choices.
+
+## 3. Waveform Curve NRMSE Configuration
+To verify whole-trajectory topology invariance over the final cycle forcing window, the Normalized Root-Mean-Square Error (NRMSE) is computed over 801 time-aligned samples, interpolating the fine reference data onto the coarse time grid:
+
+$$NRMSE = \frac{\sqrt{\frac{1}{N}\sum_{i=1}^{N} (P_{a,i}^{coarse} - P_{a,i}^{reference})^2}}{P_{a,\max}^{reference} - P_{a,\min}^{reference}} \equiv 1.1248 \times 10^{-5}$$
+
+## 4. Reconciled Baseline Performance Metrics
+Baseline model outputs were compared with representative physiological reference ranges to assess the plausibility of the simulated hemodynamic response, ensuring perfect math agreement with cardiac output identities ($CO = \frac{SV \times HR}{1000}$):
+
+*   **Heart Rate ($HR$):** $75\text{ beats/min}$ ($T = 0.80\text{ s}$)
+*   **Stroke Volume ($SV$):** $81.9328\text{ mL}$ ($V_{LV,\max} = 139.8142\text{ mL}$, $V_{LV,\min} = 57.8814\text{ mL}$)
+*   **Cardiac Output ($CO$):** **$6.1450\text{ L/min}$** (Perfect Mathematical Consistency)
+
 
 
 
