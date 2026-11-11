@@ -1,4 +1,0 @@
-Bifurcation_ID,Parameter_Name,Coordinate_Value,Transition_Type,System_Response
-B1,Rsys,1.60000,Fold_LimitCycle_Collapse,Forward_Jump_Triggered
-B2,Rsys,1.20000,Fold_LimitCycle_Collapse,Reverse_Jump_Triggered
-
