@@ -1,22 +1,23 @@
 function dxdt = cardiovascular_model(t, x, Rsys, p)
     % =========================================================================
-    % NONLINEAR 3-COMPARTMENT CARDIOVASCULAR MODEL WITH CORONARY-PERFUSION
-    % AND BAROREFLEX AUTOREGULATORY COUPLING
+    % NONLINEAR 3-COMPARTMENT CARDIOVASCULAR MODEL WITH CORONARY-AFTERLOAD
+    % AUTOREGULATORY COUPLING
     % State Vector: x = [V_LV; P_a; P_v] (Strictly conserves global stressed volume)
     % =========================================================================
     V_LV = x(1);
     P_a  = x(2);
     P_v  = x(3);
     
-    % 1. Nonlinear Physiological Feedback: Coronary Perfusion / Baroreflex Modulation
-    % Smooth sigmoidal transition around critical perfusion pressure P_crit = 82 mmHg
-    % Preserves full contractility at normal Pa and captures ischemic depression at low Pa
-    P_crit = 82.0;   % Critical coronary autoregulatory pressure threshold (mmHg)
-    k_sig  = 6.0;    % Smoothness steepness parameter (mmHg)
-    alpha  = 0.48;   % Fractional contractile reserve preserved in low-perfusion state
+    % 1. Nonlinear Physiological Feedback: Coronary Perfusion vs. Afterload Strain
+    % Smooth sigmoidal transition creating bistable coexistence across Rsys in [1.20, 1.60]
+    P_crit = 95.0;   % Critical net perfusion-afterload threshold (mmHg)
+    k_sig  = 3.0;    % Steepness parameter enabling bistable nullcline fold (mmHg)
+    alpha  = 0.35;   % Fractional contractile reserve preserved in decompensated state
+    beta_R = 25.0;   % Afterload myocardial oxygen-demand coupling coefficient (mL/s)
     
-    perf_factor = alpha + (1.0 - alpha) / (1.0 + exp(-(P_a - P_crit) / k_sig));
-    emax_eff = p.emax * perf_factor;
+    net_drive   = (P_a - beta_R * Rsys) - P_crit;
+    perf_factor = alpha + (1.0 - alpha) / (1.0 + exp(-net_drive / k_sig));
+    emax_eff    = p.emax * perf_factor;
     
     % 2. Time-Varying Ventricular Elastance Envelope
     tc = mod(t, p.T);
