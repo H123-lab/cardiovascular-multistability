@@ -1,8 +1,8 @@
 function generate_sweep_audit()
     % =========================================================================
-    % OCTAVE & MATLAB COMPATIBLE SWEEP AND FIXED-Rsys COEXISTENCE AUDIT
-    % Reads forward_sweep.csv & reverse_sweep.csv, tests Rsys = 1.40 coexistence
-    % at both 300 s and 600 s, and writes audit_sweep_transcript.log
+    % NONLINEAR SWEEP AND FIXED-Rsys COEXISTENCE AUDIT (OCTAVE & MATLAB)
+    % Validates 61 ascending sweep rows, transition brackets, and coexistence
+    % at Rsys = 1.40 mmHg*s/mL for both 300 s and 600 s settling durations
     % =========================================================================
     clear; clc;
     script_dir = fileparts(mfilename('fullpath'));
@@ -17,7 +17,6 @@ function generate_sweep_audit()
     Rsys_rev = rev_data(:, 1);
     MAP_rev  = rev_data(:, 2);
     
-    % Verify 61 rows and ascending Rsys alignment
     row_ok = (size(fwd_data, 1) == 61) && (size(rev_data, 1) == 61) && all(abs(Rsys_fwd - Rsys_rev) < 1e-9);
     if ~row_ok
         error('Sweep CSV row count or ascending Rsys order mismatch.');
@@ -53,7 +52,7 @@ function generate_sweep_audit()
     fprintf(fid_s, 'SimA_300s,%.6f,%.6f,%.6f,%.6e\n', mapA_300, max(cycA_300(1,:)), min(cycA_300(1,:)), errA_300);
     fprintf(fid_s, 'SimB_300s,%.6f,%.6f,%.6f,%.6e\n', mapB_300, max(cycB_300(1,:)), min(cycB_300(1,:)), errB_300);
     fprintf(fid_s, 'SimA_600s,%.6f,%.6f,%.6f,%.6e\n', mapA_600, max(cycA_600(1,:)), min(cycA_600(1,:)), errA_600);
-    fprintf(fid_s, 'SimB_600s,%.6f,%.6f,%.6f,%.6e\n', mapB_600, max(cycB_600(1,:)), min(cycB_600(1,:)), errB_600);
+    fprintf(fid_s, 'SimB_600s,%.6f,%.6f,%.6e\n', mapB_600, max(cycB_600(1,:)), min(cycB_600(1,:)), errB_600);
     fclose(fid_s);
     
     % Write audit_sweep_transcript.log
@@ -96,16 +95,19 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
     steps_per_cycle = c_steps;
     
     T = p.T; T_sys = 0.3 * T;
-    emin = p.emin; ediff = p.emax - emin;
+    emin = p.emin; emax = p.emax;
     v0 = p.v0; Ca = p.Ca; Cv = p.Cv;
     inv_Rav = 1.0 / p.R_av; inv_Rmv = 1.0 / p.R_mv; inv_Rsys = 1.0 / Rsys;
     
-    E0 = zeros(1, steps_per_cycle); Eh = zeros(1, steps_per_cycle); E1 = zeros(1, steps_per_cycle);
+    % Nonlinear coronary-perfusion / baroreflex feedback parameters (matches cardiovascular_model.m)
+    P_crit = 82.0; k_sig = 6.0; alpha = 0.48;
+    
+    phi0 = zeros(1, steps_per_cycle); phih = zeros(1, steps_per_cycle); phi1 = zeros(1, steps_per_cycle);
     for m = 1:steps_per_cycle
         t0 = (m - 1) * dt; th = t0 + 0.5 * dt; t1 = t0 + dt;
-        E0(m) = emin + (t0 <= T_sys) * ediff * 0.5 * (1 - cos(pi * t0 / T_sys));
-        Eh(m) = emin + (th <= T_sys) * ediff * 0.5 * (1 - cos(pi * th / T_sys));
-        E1(m) = emin + (t1 <= T_sys) * ediff * 0.5 * (1 - cos(pi * t1 / T_sys));
+        phi0(m) = (t0 <= T_sys) * 0.5 * (1 - cos(pi * t0 / T_sys));
+        phih(m) = (th <= T_sys) * 0.5 * (1 - cos(pi * th / T_sys));
+        phi1(m) = (t1 <= T_sys) * 0.5 * (1 - cos(pi * t1 / T_sys));
     end
     
     v = x0(1); pa = x0(2); pv = x0(3);
@@ -115,29 +117,41 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
     
     for k = 1:N
         idx = mod(k - 1, steps_per_cycle) + 1;
-        e0 = E0(idx); eh = Eh(idx); e1 = E1(idx);
+        p0 = phi0(idx); ph = phih(idx); p1 = phi1(idx);
         
+        % Stage 1
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pa - P_crit) / k_sig));
+        e0 = emin + (emax * perf - emin) * p0;
         plv = e0 * (v - v0);
         qmv = (pv > plv) * (pv - plv) * inv_Rmv;
         qav = (plv > pa) * (plv - pa) * inv_Rav;
         qsys = (pa - pv) * inv_Rsys;
         k1_v = qmv - qav; k1_a = (qav - qsys) / Ca; k1_p = (qsys - qmv) / Cv;
         
+        % Stage 2
         vt = v + 0.5*dt*k1_v; pat = pa + 0.5*dt*k1_a; pvt = pv + 0.5*dt*k1_p;
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        eh = emin + (emax * perf - emin) * ph;
         plv = eh * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
         qav = (plv > pat) * (plv - pat) * inv_Rav;
         qsys = (pat - pvt) * inv_Rsys;
         k2_v = qmv - qav; k2_a = (qav - qsys) / Ca; k2_p = (qsys - qmv) / Cv;
         
+        % Stage 3
         vt = v + 0.5*dt*k2_v; pat = pa + 0.5*dt*k2_a; pvt = pv + 0.5*dt*k2_p;
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        eh = emin + (emax * perf - emin) * ph;
         plv = eh * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
         qav = (plv > pat) * (plv - pat) * inv_Rav;
         qsys = (pat - pvt) * inv_Rsys;
         k3_v = qmv - qav; k3_a = (qav - qsys) / Ca; k3_p = (qsys - qmv) / Cv;
         
+        % Stage 4
         vt = v + dt*k3_v; pat = pa + dt*k3_a; pvt = pv + dt*k3_p;
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        e1 = emin + (emax * perf - emin) * p1;
         plv = e1 * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
         qav = (plv > pat) * (plv - pat) * inv_Rav;
