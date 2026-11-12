@@ -1,6 +1,6 @@
 function generate_sweep_audit()
     % =========================================================================
-    % NONLINEAR SWEEP AND FIXED-Rsys COEXISTENCE AUDIT (OCTAVE & MATLAB)
+    % BISTABLE SWEEP AND FIXED-Rsys COEXISTENCE AUDIT (OCTAVE & MATLAB)
     % Validates 61 ascending sweep rows, transition brackets, and coexistence
     % at Rsys = 1.40 mmHg*s/mL for both 300 s and 600 s settling durations
     % =========================================================================
@@ -52,7 +52,7 @@ function generate_sweep_audit()
     fprintf(fid_s, 'SimA_300s,%.6f,%.6f,%.6f,%.6e\n', mapA_300, max(cycA_300(1,:)), min(cycA_300(1,:)), errA_300);
     fprintf(fid_s, 'SimB_300s,%.6f,%.6f,%.6f,%.6e\n', mapB_300, max(cycB_300(1,:)), min(cycB_300(1,:)), errB_300);
     fprintf(fid_s, 'SimA_600s,%.6f,%.6f,%.6f,%.6e\n', mapA_600, max(cycA_600(1,:)), min(cycA_600(1,:)), errA_600);
-    fprintf(fid_s, 'SimB_600s,%.6f,%.6f,%.6e\n', mapB_600, max(cycB_600(1,:)), min(cycB_600(1,:)), errB_600);
+    fprintf(fid_s, 'SimB_600s,%.6f,%.6f,%.6f,%.6e\n', mapB_600, max(cycB_600(1,:)), min(cycB_600(1,:)), errB_600);
     fclose(fid_s);
     
     % Write audit_sweep_transcript.log
@@ -99,8 +99,9 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
     v0 = p.v0; Ca = p.Ca; Cv = p.Cv;
     inv_Rav = 1.0 / p.R_av; inv_Rmv = 1.0 / p.R_mv; inv_Rsys = 1.0 / Rsys;
     
-    % Nonlinear coronary-perfusion / baroreflex feedback parameters (matches cardiovascular_model.m)
-    P_crit = 82.0; k_sig = 6.0; alpha = 0.48;
+    % Nonlinear coupling parameters (matches cardiovascular_model.m line-for-line)
+    P_crit = 95.0; k_sig = 3.0; alpha = 0.35; beta_R = 25.0;
+    R_offset = beta_R * Rsys + P_crit;
     
     phi0 = zeros(1, steps_per_cycle); phih = zeros(1, steps_per_cycle); phi1 = zeros(1, steps_per_cycle);
     for m = 1:steps_per_cycle
@@ -120,7 +121,7 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
         p0 = phi0(idx); ph = phih(idx); p1 = phi1(idx);
         
         % Stage 1
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pa - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pa - R_offset) / k_sig));
         e0 = emin + (emax * perf - emin) * p0;
         plv = e0 * (v - v0);
         qmv = (pv > plv) * (pv - plv) * inv_Rmv;
@@ -130,7 +131,7 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
         
         % Stage 2
         vt = v + 0.5*dt*k1_v; pat = pa + 0.5*dt*k1_a; pvt = pv + 0.5*dt*k1_p;
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - R_offset) / k_sig));
         eh = emin + (emax * perf - emin) * ph;
         plv = eh * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
@@ -140,7 +141,7 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
         
         % Stage 3
         vt = v + 0.5*dt*k2_v; pat = pa + 0.5*dt*k2_a; pvt = pv + 0.5*dt*k2_p;
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - R_offset) / k_sig));
         eh = emin + (emax * perf - emin) * ph;
         plv = eh * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
@@ -150,7 +151,7 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
         
         % Stage 4
         vt = v + dt*k3_v; pat = pa + dt*k3_a; pvt = pv + dt*k3_p;
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - R_offset) / k_sig));
         e1 = emin + (emax * perf - emin) * p1;
         plv = e1 * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
@@ -174,6 +175,11 @@ function [cycle_map, Y_last, cyc_err] = run_coex_trial(x0, Rsys, p, dt, tsim)
     cycle_map = trapz(t_last, Y_last(2, :)) / T;
     cyc_err = max(max(abs(Y_last - Y_prev)));
 end
+
+    
+
+    s
+    
 
     
 
