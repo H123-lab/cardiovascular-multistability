@@ -65,7 +65,7 @@ function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
     inv_Rav = 1.0 / p.R_av; inv_Rmv = 1.0 / p.R_mv; inv_Rsys = 1.0 / Rsys;
     
     % Nonlinear coupling parameters (matches cardiovascular_model.m line-for-line)
-    P_crit = 70.0; k_sig = 2.0; alpha = 0.35; beta_R = 15.0;
+    P_crit = 54.0; k_sig = 1.5; alpha = 0.55; beta_R = 70.0;
     R_offset = beta_R * Rsys + P_crit;
     
     steps_per_cycle = round(T / dt);
