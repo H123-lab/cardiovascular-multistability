@@ -134,7 +134,7 @@ function [cycle_map, Y_last, cyc_err] = run_fast_trial(x0, Rsys, p, dt, tsim)
     v0 = p.v0; Ca = p.Ca; Cv = p.Cv;
     inv_Rav = 1.0 / p.R_av; inv_Rmv = 1.0 / p.R_mv; inv_Rsys = 1.0 / Rsys;
     
-    P_crit = 95.0; k_sig = 3.0; alpha = 0.35; beta_R = 25.0;
+    P_crit = 70.0; k_sig = 2.0; alpha = 0.35; beta_R = 15.0;
     R_offset = beta_R * Rsys + P_crit;
     
     phi0 = zeros(1, c_steps); phih = zeros(1, c_steps); phi1 = zeros(1, c_steps);
