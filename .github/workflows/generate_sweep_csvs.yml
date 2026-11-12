@@ -20,8 +20,9 @@ jobs:
 
       - name: Run forward/reverse RK4 sweeps and audit
         run: |
-          octave --no-gui --eval "run('simulations/run_forward_reverse_sweeps.m'); run('tests/generate_sweep_audit.m');"
-          git rm -f results/processed/equilibria.csv || true
+          octave --no-gui --eval "run('simulations/run_forward_reverse_sweeps.m'); run('tests/generate_sweep_audit.m'); run('tests/generate_audit_transcript.m');"
+          git rm -f results/processed/equilibria.csv results/processed/bifurcation_points.csv || true
+
 
       - name: Commit genuine CSV outputs to repository
         run: |
