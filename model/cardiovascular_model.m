@@ -10,10 +10,11 @@ function dxdt = cardiovascular_model(t, x, Rsys, p)
     
     % 1. Nonlinear Physiological Feedback: Coronary Perfusion vs. Afterload Strain
     % Smooth sigmoidal transition creating bistable coexistence across Rsys in [1.20, 1.60]
-    P_crit = 70.0;   % Critical net perfusion-afterload threshold (mmHg)
-    k_sig  = 2.0;    % Steepness parameter enabling bistable nullcline fold (mmHg)
-    alpha  = 0.35;   % Fractional contractile reserve preserved in decompensated state
-    beta_R = 15.0;   % Afterload myocardial oxygen-demand coupling coefficient (mL/s)
+   P_crit = 54.0;   % Exact fold threshold matched to upper/lower Pa branches (mmHg)
+   k_sig  = 1.5;    % Steepness parameter enabling sharp bistable transition (mmHg)
+   alpha  = 0.55;   % Fractional contractile reserve preserved in decompensated state
+   beta_R = 70.0;   % Afterload myocardial oxygen-demand coupling coefficient (mL/s)
+
     
     net_drive   = (P_a - beta_R * Rsys) - P_crit;
     perf_factor = alpha + (1.0 - alpha) / (1.0 + exp(-net_drive / k_sig));
