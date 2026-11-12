@@ -1,6 +1,6 @@
 function run_forward_reverse_sweeps()
     % =========================================================================
-    % FORWARD AND REVERSE PARAMETER SWEEPS (NONLINEAR CORONARY-BAROREFLEX MODEL)
+    % FORWARD AND REVERSE PARAMETER SWEEPS (BISTABLE NONLINEAR MODEL)
     % Keeps exact dt = 0.001 s (1 ms) and exports 61 ascending rows + terminal states
     % =========================================================================
     clear; clc;
@@ -23,8 +23,8 @@ function run_forward_reverse_sweeps()
     rev_states = zeros(3, num_steps);
     
     % --- 1. FORWARD SWEEP (0.80 -> 2.00) ---
-    % Seed from compensated high-perfusion state (Pa = 115 mmHg, stressed volume = 1452.50 mL)
-    state_vec = [120; 115; (1452.50 - 120 - p.Ca*115) / p.Cv];
+    % Seed on upper compensated branch (Pa = 135 mmHg, stressed volume = 1452.50 mL)
+    state_vec = [120; 135; (1452.50 - 120 - p.Ca*135) / p.Cv];
     for i = 1:num_steps
         [fwd_map(i), state_vec] = fast_rk4_sweep_point(state_vec, Rsys_vec(i), p, dt, tsim);
         fwd_states(:, i) = state_vec;
@@ -51,7 +51,7 @@ function run_forward_reverse_sweeps()
         {'Rsys', 'MAP_Forward_mmHg', 'MAP_Reverse_mmHg', 'Abs_MAP_Difference_mmHg'}, ...
         [Rsys_vec', fwd_map', rev_map', abs(fwd_map' - rev_map')]);
         
-    fprintf('[SUCCESS] Generated genuine 61-row nonlinear sweep CSV outputs.\n');
+    fprintf('[SUCCESS] Generated genuine 61-row bistable sweep CSV outputs.\n');
 end
 
 function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
@@ -64,10 +64,10 @@ function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
     v0 = p.v0; Ca = p.Ca; Cv = p.Cv;
     inv_Rav = 1.0 / p.R_av; inv_Rmv = 1.0 / p.R_mv; inv_Rsys = 1.0 / Rsys;
     
-    % Nonlinear coronary-perfusion / baroreflex feedback parameters (matches cardiovascular_model.m)
-    P_crit = 82.0; k_sig = 6.0; alpha = 0.48;
+    % Nonlinear coupling parameters (matches cardiovascular_model.m line-for-line)
+    P_crit = 95.0; k_sig = 3.0; alpha = 0.35; beta_R = 25.0;
+    R_offset = beta_R * Rsys + P_crit;
     
-    % Precompute normalized activation shape phi(t) in [0, 1] across one cycle
     steps_per_cycle = round(T / dt);
     phi0 = zeros(1, steps_per_cycle);
     phih = zeros(1, steps_per_cycle);
@@ -90,7 +90,7 @@ function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
         p0 = phi0(idx); ph = phih(idx); p1 = phi1(idx);
         
         % Stage 1
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pa - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pa - R_offset) / k_sig));
         e0 = emin + (emax * perf - emin) * p0;
         plv = e0 * (v - v0);
         qmv = (pv > plv) * (pv - plv) * inv_Rmv;
@@ -100,7 +100,7 @@ function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
         
         % Stage 2
         vt = v + 0.5*dt*k1_v; pat = pa + 0.5*dt*k1_a; pvt = pv + 0.5*dt*k1_p;
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - R_offset) / k_sig));
         eh = emin + (emax * perf - emin) * ph;
         plv = eh * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
@@ -110,7 +110,7 @@ function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
         
         % Stage 3
         vt = v + 0.5*dt*k2_v; pat = pa + 0.5*dt*k2_a; pvt = pv + 0.5*dt*k2_p;
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - R_offset) / k_sig));
         eh = emin + (emax * perf - emin) * ph;
         plv = eh * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
@@ -120,7 +120,7 @@ function [cycle_map, x_end] = fast_rk4_sweep_point(x0, Rsys, p, dt, tsim)
         
         % Stage 4
         vt = v + dt*k3_v; pat = pa + dt*k3_a; pvt = pv + dt*k3_p;
-        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - P_crit) / k_sig));
+        perf = alpha + (1.0 - alpha) / (1.0 + exp(-(pat - R_offset) / k_sig));
         e1 = emin + (emax * perf - emin) * p1;
         plv = e1 * (vt - v0);
         qmv = (pvt > plv) * (pvt - plv) * inv_Rmv;
@@ -151,6 +151,7 @@ function write_csv_file(filepath, headers, data_matrix)
     fclose(fid);
     dlmwrite(filepath, data_matrix, '-append', 'precision', '%.6f');
 end
+
 
 
 
