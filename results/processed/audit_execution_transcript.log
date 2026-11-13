@@ -1,1 +1,0 @@
-Timestamped compliance report verifying RK4 centralization, global stressed-volume drift (< 10⁻¹² mL), 4-step convergence, 801-sample waveform NRMSE, baseline reconciliation (CO = SV × HR / 1000), and cycle periodicity.
