@@ -303,45 +303,45 @@ with open("results/processed/baseline_summary.csv", "w") as fb:
             fexec.write(f"2. Integrated MAP (0.01 / 0.005 / 0.001 / 0.0001 s): {m_01:.4f} / {m_005:.4f} / {m_001:.4f} / {m_0001:.4f} mmHg\n")
             fexec.write(f"3. Unrounded MAP Delta (0.001 s vs 0.0001 s): {delta_map_unrounded:.6e} mmHg\n")
             fexec.write(f"4. Final-Cycle Curve NRMSE (801 samples): {nrmse:.6e}\n")
-        fexec.write(f"5. Baseline Outputs (Rsys = 1.40): MAP = {m_001:.4f} mmHg | SV = {sv_base:.4f} mL | CO = {co_base:.4f} L/min\n")
-        fexec.write(f"6. Max Successive-Cycle Trajectory Difference: {per_err_base:.6e}\n")
-        fexec.write("=================================================================\n")
+            fexec.write(f"5. Baseline Outputs (Rsys = 1.40): MAP = {m_001:.4f} mmHg | SV = {sv_base:.4f} mL | CO = {co_base:.4f} L/min\n")
+            fexec.write(f"6. Max Successive-Cycle Trajectory Difference: {per_err_base:.6e}\n")
+            fexec.write("=================================================================\n")
 
     with open("results/processed/audit_sweep_transcript.log", "w") as flog:
-        flog.write("=================================================================\n")
-        flog.write("         FOUR-ANALYSIS SWEEP & HYSTERESIS AUDIT REPORT           \n")
-        flog.write("=================================================================\n")
-        flog.write(f"Timestamp: {now_str}\n\n")
-        flog.write("ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:\n")
-        flog.write("  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, 300s/step, state continuation verified.\n\n")
-        flog.write("ANALYSIS 2 — HYSTERESIS QUANTIFICATION:\n")
-        if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
-            fi = int(fwd_jumps.item(0))
-            ri = int(rev_jumps.item(0))
-            Rf = 0.5 * (Rsys_vec[fi] + Rsys_vec[fi + 1])
-            Rr = 0.5 * (Rsys_vec[ri] + Rsys_vec[ri + 1])
-            flog.write(f"  -> Forward bracket: [{Rsys_vec[fi]:.2f}, {Rsys_vec[fi+1]:.2f}] mmHg*s/mL (midpoint Rf = {Rf:.3f})\n")
-            flog.write(f"  -> Reverse bracket: [{Rsys_vec[ri]:.2f}, {Rsys_vec[ri+1]:.2f}] mmHg*s/mL (midpoint Rr = {Rr:.3f})\n")
-            flog.write(f"  -> Hysteresis width Delta_Rsys = |Rf - Rr| = {abs(Rf - Rr):.3f} mmHg*s/mL\n\n")
-        else:
-            flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
-        flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
-        flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n\n")
-        flog.write("ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, 300s/step):\n")
-        if len(fj_fine) > 0 and len(rj_fine) > 0:
-            fi_f = int(fj_fine.item(0))
-            ri_f = int(rj_fine.item(0))
-            flog.write(f"  -> Fine forward bracket: [{R_fine[fi_f]:.3f}, {R_fine[fi_f+1]:.3f}] mmHg*s/mL\n")
-            flog.write(f"  -> Fine reverse bracket: [{R_fine[ri_f]:.3f}, {R_fine[ri_f+1]:.3f}] mmHg*s/mL\n")
-        else:
-            flog.write("  -> Fine sweep did not exhibit two transition jumps.\n")
-        flog.write("=================================================================\n")
-
-    print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
-
-
-if __name__ == "__main__":
-    main()
+            flog.write("=================================================================\n")
+            flog.write("         FOUR-ANALYSIS SWEEP & HYSTERESIS AUDIT REPORT           \n")
+            flog.write("=================================================================\n")
+            flog.write(f"Timestamp: {now_str}\n\n")
+            flog.write("ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:\n")
+            flog.write("  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, 300s/step, state continuation verified.\n\n")
+            flog.write("ANALYSIS 2 — HYSTERESIS QUANTIFICATION:\n")
+            if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
+                fi = int(fwd_jumps.item(0))
+                ri = int(rev_jumps.item(0))
+                Rf = 0.5 * (Rsys_vec[fi] + Rsys_vec[fi + 1])
+                Rr = 0.5 * (Rsys_vec[ri] + Rsys_vec[ri + 1])
+                flog.write(f"  -> Forward bracket: [{Rsys_vec[fi]:.2f}, {Rsys_vec[fi+1]:.2f}] mmHg*s/mL (midpoint Rf = {Rf:.3f})\n")
+                flog.write(f"  -> Reverse bracket: [{Rsys_vec[ri]:.2f}, {Rsys_vec[ri+1]:.2f}] mmHg*s/mL (midpoint Rr = {Rr:.3f})\n")
+                flog.write(f"  -> Hysteresis width Delta_Rsys = |Rf - Rr| = {abs(Rf - Rr):.3f} mmHg*s/mL\n\n")
+            else:
+                flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
+            flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
+            flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n\n")
+            flog.write("ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, 300s/step):\n")
+            if len(fj_fine) > 0 and len(rj_fine) > 0:
+                fi_f = int(fj_fine.item(0))
+                ri_f = int(rj_fine.item(0))
+                flog.write(f"  -> Fine forward bracket: [{R_fine[fi_f]:.3f}, {R_fine[fi_f+1]:.3f}] mmHg*s/mL\n")
+                flog.write(f"  -> Fine reverse bracket: [{R_fine[ri_f]:.3f}, {R_fine[ri_f+1]:.3f}] mmHg*s/mL\n")
+            else:
+                flog.write("  -> Fine sweep did not exhibit two transition jumps.\n")
+            flog.write("=================================================================\n")
+    
+        print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
+    
+    
+    if __name__ == "__main__":
+        main()
 
 
  
