@@ -254,100 +254,95 @@ vlv_max_base = 0.0
 vlv_min_base = 0.0
 v0_init, pa0_init = 120.0, 135.0
 pv0_init = (1452.50 - v0_init - Ca * pa0_init) / Cv
-for st_dt in steps_conv:
-Yc = rk4_integrate(v0_init, pa0_init, pv0_init, 1.40, st_dt, 300.0, 2)
-cs = int(round(T / st_dt))
-c_last = Yc[:, cs:]
-c_prev = Yc[:, :cs + 1]
-map_conv.append(trapz_map(c_last[1, :], st_dt))
-if abs(st_dt - 0.001) < 1e-12:
-pa_1ms = c_last[1, :]
-v_tot_arr = Yc[0, :] + Ca * Yc[1, :] + Cv * Yc[2, :]
-v_tot_drift = float(np.max(np.abs(v_tot_arr - 1452.50)))
-per_err_base = float(np.max(np.abs(c_last - c_prev)))
-vlv_max_base = float(np.max(c_last[0, :]))
-vlv_min_base = float(np.min(c_last[0, :]))
-sv_base = vlv_max_base - vlv_min_base
-co_base = sv_base * (60.0 / T) / 1000.0
-elif abs(st_dt - 0.0001) < 1e-12:
-pa_ref = c_last[1, ::10]
-delta_map_unrounded = abs(map_conv[2] - map_conv[3])
-rmse = float(np.sqrt(np.mean((pa_1ms - pa_ref) ** 2)))
-nrmse = rmse / float(np.max(pa_ref) - np.min(pa_ref))
-with open("results/processed/baseline_summary.csv", "w") as fb:
-fb.write("Metric_Parameter,Calculated_Value\n")
-fb.write(f"MAP,{map_conv[2]:.6f}\n")
-fb.write(f"SV,{sv_base:.6f}\n")
-fb.write(f"CO,{co_base:.6f}\n")
-fb.write(f"Max_V_LV,{vlv_max_base:.6f}\n")
-fb.write(f"Min_V_LV,{vlv_min_base:.6f}\n")
-with open("results/processed/solver_convergence.csv", "w") as fs:
-fs.write("Time_Step_s,Integrated_MAP_mmHg\n")
-for s_i in range(len(steps_conv)):
-fs.write(f"{steps_conv[s_i]:.4f},{map_conv[s_i]:.6f}\n")
-# 6. Write Both Audit Logs
-now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-with open("results/processed/audit_execution_transcript.log", "w") as fexec:
-fexec.write("=================================================================\n")
-fexec.write("         REPRODUCIBILITY AUDIT TASK COMPLIANCE STATEMENT         \n")
-fexec.write("=================================================================\n")
-fexec.write(f"Execution Timestamp: {now_str}\n")
-fexec.write("Numerical Solver Engine: Shared RK4 Core (Nonlinear Model)\n\n")
-fexec.write(f"1. Global Stressed-Volume Drift (300 s): {v_tot_drift:.6e} mL\n")
-fexec.write(f"2. Integrated MAP (0.01 / 0.005 / 0.001 / 0.0001 s): {map_conv[0]:.4f} / {map_conv[1]:.4f} / {map_conv[2]:.4f} / {map_conv[3]:.4f} mmHg\n")
-fexec.write(f"3. Unrounded MAP Delta (0.001 s vs 0.0001 s): {delta_map_unrounded:.6e} mmHg\n")
-fexec.write(f"4. Final-Cycle Curve NRMSE (801 samples): {nrmse:.6e}\n")
-fexec.write(f"5. Baseline Outputs (Rsys = 1.40): MAP = {map_conv[2]:.4f} mmHg | SV = {sv_base:.4f} mL | CO = {co_base:.4f} L/min\n")
-fexec.write(f"6. Max Successive-Cycle Trajectory Difference: {per_err_base:.6e}\n")
-fexec.write("=================================================================\n")
-with open("results/processed/audit_sweep_transcript.log", "w") as flog:
-flog.write("=================================================================\n")
-flog.write("         FOUR-ANALYSIS SWEEP & HYSTERESIS AUDIT REPORT           \n")
-flog.write("=================================================================\n")
-flog.write(f"Timestamp: {now_str}\n\n")
-flog.write("ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:\n")
-flog.write("  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, 300s/step, state continuation verified.\n\n")
-flog.write("ANALYSIS 2 — HYSTERESIS QUANTIFICATION:\n")
-if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
-fi = int(fwd_jumps[0])
-ri = int(rev_jumps[0])
-Rf = 0.5 * (Rsys_vec[fi] + Rsys_vec[fi + 1])
-Rr = 0.5 * (Rsys_vec[ri] + Rsys_vec[ri + 1])
-flog.write(f"  -> Forward bracket: [{Rsys_vec[fi]:.2f}, {Rsys_vec[fi+1]:.2f}] mmHgs/mL (midpoint Rf = {Rf:.3f})\n")
-flog.write(f"  -> Reverse bracket: [{Rsys_vec[ri]:.2f}, {Rsys_vec[ri+1]:.2f}] mmHgs/mL (midpoint Rr = {Rr:.3f})\n")
-flog.write(f"  -> Hysteresis width Delta_Rsys = |Rf - Rr| = {abs(Rf - Rr):.3f} mmHgs/mL\n\n")
-else:
-flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
-flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
-flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n\n")
-flog.write("ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, 300s/step):\n")
-if len(fj_fine) > 0 and len(rj_fine) > 0:
-fi_f = int(fj_fine[0])
-ri_f = int(rj_fine[0])
-flog.write(f"  -> Fine forward bracket: [{R_fine[fi_f]:.3f}, {R_fine[fi_f+1]:.3f}] mmHgs/mL\n")
-flog.write(f"  -> Fine reverse bracket: [{R_fine[ri_f]:.3f}, {R_fine[ri_f+1]:.3f}] mmHg*s/mL\n")
-else:
-flog.write("  -> Fine sweep did not exhibit two transition jumps.\n")
-flog.write("=================================================================\n")
-print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
-if name == "main":
-main()
+    for st_dt in steps_conv:
+        Yc = rk4_integrate(v0_init, pa0_init, pv0_init, 1.40, st_dt, 300.0, 2)
+        cs = int(round(T / st_dt))
+        c_last = Yc[:, cs:]
+        c_prev = Yc[:, :cs + 1]
+        map_conv.append(trapz_map(c_last[1, :], st_dt))
+        if abs(st_dt - 0.001) < 1e-12:
+            pa_1ms = c_last[1, :]
+            v_tot_arr = Yc[0, :] + Ca * Yc[1, :] + Cv * Yc[2, :]
+            v_tot_drift = float(np.max(np.abs(v_tot_arr - 1452.50)))
+            per_err_base = float(np.max(np.abs(c_last - c_prev)))
+            vlv_max_base = float(np.max(c_last[0, :]))
+            vlv_min_base = float(np.min(c_last[0, :]))
+            sv_base = vlv_max_base - vlv_min_base
+            co_base = sv_base * (60.0 / T) / 1000.0
+        elif abs(st_dt - 0.0001) < 1e-12:
+            pa_ref = c_last[1, ::10]
 
-  
-  
-     
-           
-   
+    m_01, m_005, m_001, m_0001 = map_conv
+    delta_map_unrounded = abs(m_001 - m_0001)
+    rmse = float(np.sqrt(np.mean((pa_1ms - pa_ref) ** 2)))
+    nrmse = rmse / float(np.max(pa_ref) - np.min(pa_ref))
 
+    with open("results/processed/baseline_summary.csv", "w") as fb:
+        fb.write("Metric_Parameter,Calculated_Value\n")
+        fb.write(f"MAP,{m_001:.6f}\n")
+        fb.write(f"SV,{sv_base:.6f}\n")
+        fb.write(f"CO,{co_base:.6f}\n")
+        fb.write(f"Max_V_LV,{vlv_max_base:.6f}\n")
+        fb.write(f"Min_V_LV,{vlv_min_base:.6f}\n")
 
+    with open("results/processed/solver_convergence.csv", "w") as fs:
+        fs.write("Time_Step_s,Integrated_MAP_mmHg\n")
+        for s_i in range(len(steps_conv)):
+            fs.write(f"{steps_conv[s_i]:.4f},{map_conv[s_i]:.6f}\n")
+
+    # 6. Write Both Audit Logs
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    with open("results/processed/audit_execution_transcript.log", "w") as fexec:
+        fexec.write("=================================================================\n")
+        fexec.write("         REPRODUCIBILITY AUDIT TASK COMPLIANCE STATEMENT         \n")
+        fexec.write("=================================================================\n")
+        fexec.write(f"Execution Timestamp: {now_str}\n")
+        fexec.write("Numerical Solver Engine: Shared RK4 Core (Nonlinear Model)\n\n")
+        fexec.write(f"1. Global Stressed-Volume Drift (300 s): {v_tot_drift:.6e} mL\n")
+        fexec.write(f"2. Integrated MAP (0.01 / 0.005 / 0.001 / 0.0001 s): {m_01:.4f} / {m_005:.4f} / {m_001:.4f} / {m_0001:.4f} mmHg\n")
+        fexec.write(f"3. Unrounded MAP Delta (0.001 s vs 0.0001 s): {delta_map_unrounded:.6e} mmHg\n")
+        fexec.write(f"4. Final-Cycle Curve NRMSE (801 samples): {nrmse:.6e}\n")
+        fexec.write(f"5. Baseline Outputs (Rsys = 1.40): MAP = {m_001:.4f} mmHg | SV = {sv_base:.4f} mL | CO = {co_base:.4f} L/min\n")
+        fexec.write(f"6. Max Successive-Cycle Trajectory Difference: {per_err_base:.6e}\n")
+        fexec.write("=================================================================\n")
+
+    with open("results/processed/audit_sweep_transcript.log", "w") as flog:
+        flog.write("=================================================================\n")
+        flog.write("         FOUR-ANALYSIS SWEEP & HYSTERESIS AUDIT REPORT           \n")
+        flog.write("=================================================================\n")
+        flog.write(f"Timestamp: {now_str}\n\n")
+        flog.write("ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:\n")
+        flog.write("  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, 300s/step, state continuation verified.\n\n")
+        flog.write("ANALYSIS 2 — HYSTERESIS QUANTIFICATION:\n")
+        if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
+            fi = int(fwd_jumps.item(0))
+            ri = int(rev_jumps.item(0))
+            Rf = 0.5 * (Rsys_vec[fi] + Rsys_vec[fi + 1])
+            Rr = 0.5 * (Rsys_vec[ri] + Rsys_vec[ri + 1])
+            flog.write(f"  -> Forward bracket: [{Rsys_vec[fi]:.2f}, {Rsys_vec[fi+1]:.2f}] mmHg*s/mL (midpoint Rf = {Rf:.3f})\n")
+            flog.write(f"  -> Reverse bracket: [{Rsys_vec[ri]:.2f}, {Rsys_vec[ri+1]:.2f}] mmHg*s/mL (midpoint Rr = {Rr:.3f})\n")
+            flog.write(f"  -> Hysteresis width Delta_Rsys = |Rf - Rr| = {abs(Rf - Rr):.3f} mmHg*s/mL\n\n")
+        else:
+            flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
+        flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
+        flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n\n")
+        flog.write("ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, 300s/step):\n")
+        if len(fj_fine) > 0 and len(rj_fine) > 0:
+            fi_f = int(fj_fine.item(0))
+            ri_f = int(rj_fine.item(0))
+            flog.write(f"  -> Fine forward bracket: [{R_fine[fi_f]:.3f}, {R_fine[fi_f+1]:.3f}] mmHg*s/mL\n")
+            flog.write(f"  -> Fine reverse bracket: [{R_fine[ri_f]:.3f}, {R_fine[ri_f+1]:.3f}] mmHg*s/mL\n")
+        else:
+            flog.write("  -> Fine sweep did not exhibit two transition jumps.\n")
+        flog.write("=================================================================\n")
+
+    print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
 
 
+if __name__ == "__main__":
+    main()
 
-
-
-
-
-  
 
  
 
