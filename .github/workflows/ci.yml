@@ -1,0 +1,193 @@
+name: Continuous Integration Testing Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'results/processed/**'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install NumPy and Numba
+        run: pip install numpy numba
+
+      - name: Generate genuine RK4 sweep CSVs and audit logs
+        run: |
+          python3 - << 'EOF'
+          import os, math
+          from datetime import datetime, timezone
+          import numpy as np
+          from numba import njit
+
+          os.makedirs("results/processed", exist_ok=True)
+
+          T, T_sys = 0.80, 0.24
+          emax, emin, v0, Ca, Cv = 2.0, 0.06, 10.0, 1.5, 100.0
+          inv_Rav, inv_Rmv = 1.0 / 0.01, 1.0 / 0.008
+          P_crit, k_sig, alpha, beta_R = 54.0, 1.2, 0.72, 70.0
+
+          @njit
+          def elastance_shape(t_mod):
+              return 0.5 * (1.0 - math.cos(math.pi * t_mod / T_sys)) if t_mod <= T_sys else 0.0
+
+          @njit
+          def rk4_integrate(v, pa, pv, Rsys, dt, tsim, record_cycles=1):
+              N = int(round(tsim / dt))
+              c_steps = int(round(T / dt))
+              rec_len = record_cycles * c_steps + 1
+              start_rec = N - record_cycles * c_steps
+              inv_Rsys = 1.0 / Rsys
+              R_offset = beta_R * Rsys + P_crit
+
+              Y_rec = np.zeros((3, rec_len))
+              if start_rec == 0:
+                  Y_rec[0, 0], Y_rec[1, 0], Y_rec[2, 0] = v, pa, pv
+
+              for k in range(N):
+                  p0 = elastance_shape((k * dt) % T)
+                  ph = elastance_shape(((k + 0.5) * dt) % T)
+                  p1 = elastance_shape(((k + 1) * dt) % T)
+
+                  perf = alpha + (1.0 - alpha) / (1.0 + math.exp(-(pa - R_offset) / k_sig))
+                  plv = (emin + (emax * perf - emin) * p0) * (v - v0)
+                  qmv = (pv - plv) * inv_Rmv if pv > plv else 0.0
+                  qav = (plv - pa) * inv_Rav if plv > pa else 0.0
+                  qsys = (pa - pv) * inv_Rsys
+                  k1_v, k1_a, k1_p = qmv - qav, (qav - qsys) / Ca, (qsys - qmv) / Cv
+
+                  vt, pat, pvt = v + 0.5*dt*k1_v, pa + 0.5*dt*k1_a, pv + 0.5*dt*k1_p
+                  perf = alpha + (1.0 - alpha) / (1.0 + math.exp(-(pat - R_offset) / k_sig))
+                  plv = (emin + (emax * perf - emin) * ph) * (vt - v0)
+                  qmv = (pvt - plv) * inv_Rmv if pvt > plv else 0.0
+                  qav = (plv - pat) * inv_Rav if plv > pat else 0.0
+                  qsys = (pat - pvt) * inv_Rsys
+                  k2_v, k2_a, k2_p = qmv - qav, (qav - qsys) / Ca, (qsys - qmv) / Cv
+
+                  vt, pat, pvt = v + 0.5*dt*k2_v, pa + 0.5*dt*k2_a, pv + 0.5*dt*k2_p
+                  perf = alpha + (1.0 - alpha) / (1.0 + math.exp(-(pat - R_offset) / k_sig))
+                  plv = (emin + (emax * perf - emin) * ph) * (vt - v0)
+                  qmv = (pvt - plv) * inv_Rmv if pvt > plv else 0.0
+                  qav = (plv - pat) * inv_Rav if plv > pat else 0.0
+                  qsys = (pat - pvt) * inv_Rsys
+                  k3_v, k3_a, k3_p = qmv - qav, (qav - qsys) / Ca, (qsys - qmv) / Cv
+
+                  vt, pat, pvt = v + dt*k3_v, pa + dt*k3_a, pv + dt*k3_p
+                  perf = alpha + (1.0 - alpha) / (1.0 + math.exp(-(pat - R_offset) / k_sig))
+                  plv = (emin + (emax * perf - emin) * p1) * (vt - v0)
+                  qmv = (pvt - plv) * inv_Rmv if pvt > plv else 0.0
+                  qav = (plv - pat) * inv_Rav if plv > pat else 0.0
+                  qsys = (pat - pvt) * inv_Rsys
+                  k4_v, k4_a, k4_p = qmv - qav, (qav - qsys) / Ca, (qsys - qmv) / Cv
+
+                  v += (dt / 6.0) * (k1_v + 2.0*k2_v + 2.0*k3_v + k4_v)
+                  pa += (dt / 6.0) * (k1_a + 2.0*k2_a + 2.0*k3_a + k4_a)
+                  pv += (dt / 6.0) * (k1_p + 2.0*k2_p + 2.0*k3_p + k4_p)
+
+                  step_idx = k + 1
+                  if step_idx >= start_rec:
+                      idx = step_idx - start_rec
+                      Y_rec[0, idx], Y_rec[1, idx], Y_rec[2, idx] = v, pa, pv
+              return Y_rec
+
+          def trapz_map(pa_cycle, dt):
+              return float(np.trapezoid(pa_cycle, dx=dt) / T)
+
+          dt = 0.001
+          Rsys_vec = np.round(np.arange(0.80, 2.001, 0.02), 4)
+          n_pts = len(Rsys_vec)
+          fwd_map, rev_map = np.zeros(n_pts), np.zeros(n_pts)
+          fwd_end, rev_end = np.zeros((3, n_pts)), np.zeros((3, n_pts))
+
+          v, pa, pv = 120.0, 135.0, (1452.50 - 120.0 - Ca * 135.0) / Cv
+          for i in range(n_pts):
+              Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, 300.0, 1)
+              fwd_map[i] = trapz_map(Yc[1, :], dt)
+              v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
+              fwd_end[:, i] = [v, pa, pv]
+
+          for i in range(n_pts - 1, -1, -1):
+              Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, 300.0, 1)
+              rev_map[i] = trapz_map(Yc[1, :], dt)
+              v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
+              rev_end[:, i] = [v, pa, pv]
+
+          with open("results/processed/forward_sweep.csv", "w") as f:
+              f.write("Rsys,MAP_Forward_mmHg,V_LV_end,Pa_end,Pv_end\n")
+              for i in range(n_pts):
+                  f.write(f"{Rsys_vec[i]:.6f},{fwd_map[i]:.6f},{fwd_end[0,i]:.6f},{fwd_end[1,i]:.6f},{fwd_end[2,i]:.6f}\n")
+
+          with open("results/processed/reverse_sweep.csv", "w") as f:
+              f.write("Rsys,MAP_Reverse_mmHg,V_LV_end,Pa_end,Pv_end\n")
+              for i in range(n_pts):
+                  f.write(f"{Rsys_vec[i]:.6f},{rev_map[i]:.6f},{rev_end[0,i]:.6f},{rev_end[1,i]:.6f},{rev_end[2,i]:.6f}\n")
+
+          with open("results/processed/sweep_comparison.csv", "w") as f:
+              f.write("Rsys,MAP_Forward_mmHg,MAP_Reverse_mmHg,Abs_MAP_Difference_mmHg\n")
+              for i in range(n_pts):
+                  f.write(f"{Rsys_vec[i]:.6f},{fwd_map[i]:.6f},{rev_map[i]:.6f},{abs(fwd_map[i]-rev_map[i]):.6f}\n")
+
+          fwd_jumps = np.where(np.abs(np.diff(fwd_map)) > 5.0)[0]
+          rev_jumps = np.where(np.abs(np.diff(rev_map)) > 5.0)[0]
+          c_steps = int(round(T / dt))
+
+          with open("results/processed/coexistence_multi_Rsys_summary.csv", "w") as fc, \
+               open("results/processed/coexistence_R140_summary.csv", "w") as f140:
+              fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\n")
+              f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\n")
+              for r_val in [1.30, 1.40, 1.50]:
+                  idx = int(np.argmin(np.abs(Rsys_vec - r_val)))
+                  YA = rk4_integrate(float(fwd_end[0, idx]), float(fwd_end[1, idx]), float(fwd_end[2, idx]), r_val, dt, 300.0, 2)
+                  YB = rk4_integrate(float(rev_end[0, idx]), float(rev_end[1, idx]), float(rev_end[2, idx]), r_val, dt, 300.0, 2)
+                  cycA, prevA = YA[:, c_steps:], YA[:, :c_steps+1]
+                  cycB, prevB = YB[:, c_steps:], YB[:, :c_steps+1]
+                  mA, mB = trapz_map(cycA[1, :], dt), trapz_map(cycB[1, :], dt)
+                  svA, svB = float(np.max(cycA[0, :]) - np.min(cycA[0, :])), float(np.max(cycB[0, :]) - np.min(cycB[0, :]))
+                  coA, coB = svA * (60.0 / T) / 1000.0, svB * (60.0 / T) / 1000.0
+                  errA, errB = float(np.max(np.abs(cycA - prevA))), float(np.max(np.abs(cycB - prevB)))
+                  sep = float(np.max(np.abs(cycA - cycB)))
+                  fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1,:]):.6f},{np.min(cycA[1,:]):.6f},{np.max(cycA[0,:]):.6f},{np.min(cycA[0,:]):.6f},{errA:.6e},{sep:.6f}\n")
+                  fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1,:]):.6f},{np.min(cycB[1,:]):.6f},{np.max(cycB[0,:]):.6f},{np.min(cycB[0,:]):.6f},{errB:.6e},{sep:.6f}\n")
+                  if abs(r_val - 1.40) < 1e-6:
+                      YA6 = rk4_integrate(float(fwd_end[0, idx]), float(fwd_end[1, idx]), float(fwd_end[2, idx]), 1.40, dt, 600.0, 2)
+                      YB6 = rk4_integrate(float(rev_end[0, idx]), float(rev_end[1, idx]), float(rev_end[2, idx]), 1.40, dt, 600.0, 2)
+                      cA6, pA6 = YA6[:, c_steps:], YA6[:, :c_steps+1]
+                      cB6, pB6 = YB6[:, c_steps:], YB6[:, :c_steps+1]
+                      f140.write(f"SimA_300s,{mA:.6f},{np.max(cycA[0,:]):.6f},{np.min(cycA[0,:]):.6f},{errA:.6e}\n")
+                      f140.write(f"SimB_300s,{mB:.6f},{np.max(cycB[0,:]):.6f},{np.min(cycB[0,:]):.6f},{errB:.6e}\n")
+                      f140.write(f"SimA_600s,{trapz_map(cA6[1,:], dt):.6f},{np.max(cA6[0,:]):.6f},{np.min(cA6[0,:]):.6f},{np.max(np.abs(cA6-pA6)):.6e}\n")
+                      f140.write(f"SimB_600s,{trapz_map(cB6[1,:], dt):.6f},{np.max(cB6[0,:]):.6f},{np.min(cB6[0,:]):.6f},{np.max(np.abs(cB6-pB6)):.6e}\n")
+
+          with open("results/processed/audit_sweep_transcript.log", "w") as flog:
+              flog.write("=================================================================\n")
+              flog.write("         FOUR-ANALYSIS SWEEP & HYSTERESIS AUDIT REPORT           \n")
+              flog.write("=================================================================\n")
+              flog.write(f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n")
+              if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
+                  fi, ri = int(fwd_jumps[0]), int(rev_jumps[0])
+                  Rf = 0.5 * (Rsys_vec[fi] + Rsys_vec[fi + 1])
+Rr = 0.5 * (Rsys_vec[ri] + Rsys_vec[ri + 1])
+flog.write(f"Forward bracket: [{Rsys_vec[fi]:.2f}, {Rsys_vec[fi+1]:.2f}] mmHgs/mL (midpoint Rf = {Rf:.3f})\n")
+flog.write(f"Reverse bracket: [{Rsys_vec[ri]:.2f}, {Rsys_vec[ri+1]:.2f}] mmHgs/mL (midpoint Rr = {Rr:.3f})\n")
+flog.write(f"Hysteresis width Delta_Rsys = |Rf - Rr| = {abs(Rf - Rr):.3f} mmHg*s/mL\n")
+else:
+flog.write("Both transition jumps not detected in raw sweep outputs.\n")
+flog.write("=================================================================\n")
+print("[SUCCESS] All CSVs and logs generated cleanly.")
+EOF
