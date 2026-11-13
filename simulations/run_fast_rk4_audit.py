@@ -272,18 +272,18 @@ for st_dt in steps_conv:
         elif abs(st_dt - 0.0001) < 1e-12:
             pa_ref = c_last[1, ::10]
 
-    m_01, m_005, m_001, m_0001 = map_conv
-    delta_map_unrounded = abs(m_001 - m_0001)
-    rmse = float(np.sqrt(np.mean((pa_1ms - pa_ref) ** 2)))
-    nrmse = rmse / float(np.max(pa_ref) - np.min(pa_ref))
+m_01, m_005, m_001, m_0001 = map_conv
+delta_map_unrounded = abs(m_001 - m_0001)
+rmse = float(np.sqrt(np.mean((pa_1ms - pa_ref) ** 2)))
+nrmse = rmse / float(np.max(pa_ref) - np.min(pa_ref))
 
-    with open("results/processed/baseline_summary.csv", "w") as fb:
-        fb.write("Metric_Parameter,Calculated_Value\n")
-        fb.write(f"MAP,{m_001:.6f}\n")
-        fb.write(f"SV,{sv_base:.6f}\n")
-        fb.write(f"CO,{co_base:.6f}\n")
-        fb.write(f"Max_V_LV,{vlv_max_base:.6f}\n")
-        fb.write(f"Min_V_LV,{vlv_min_base:.6f}\n")
+with open("results/processed/baseline_summary.csv", "w") as fb:
+fb.write("Metric_Parameter,Calculated_Value\n")
+fb.write(f"MAP,{m_001:.6f}\n")
+fb.write(f"SV,{sv_base:.6f}\n")
+fb.write(f"CO,{co_base:.6f}\n")
+fb.write(f"Max_V_LV,{vlv_max_base:.6f}\n")
+fb.write(f"Min_V_LV,{vlv_min_base:.6f}\n")
 
     with open("results/processed/solver_convergence.csv", "w") as fs:
         fs.write("Time_Step_s,Integrated_MAP_mmHg\n")
