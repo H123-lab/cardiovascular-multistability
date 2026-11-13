@@ -135,13 +135,13 @@ def main():
     v, pa, pv = 120.0, 135.0, (1452.50 - 120.0 - Ca * 135.0) / Cv
     for i in range(n_pts):
         Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, 300.0, 1)
-        fwd_map[i] = trapz_map(Yc[1], dt)
+        fwd_map[i] = trapz_map(Yc[1, :], dt)
         v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
         fwd_end[:, i] = [v, pa, pv]
 
     for i in range(n_pts - 1, -1, -1):
         Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, 300.0, 1)
-        rev_map[i] = trapz_map(Yc[1], dt)
+        rev_map[i] = trapz_map(Yc[1, :], dt)
         v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
         rev_end[:, i] = [v, pa, pv]
 
@@ -179,27 +179,27 @@ def main():
             cycA, prevA = YA[:, c_steps:], YA[:, :c_steps + 1]
             cycB, prevB = YB[:, c_steps:], YB[:, :c_steps + 1]
 
-            mA, mB = trapz_map(cycA[1], dt), trapz_map(cycB[1], dt)
-            svA = float(np.max(cycA[0]) - np.min(cycA[0]))
-            svB = float(np.max(cycB[0]) - np.min(cycB[0]))
+            mA, mB = trapz_map(cycA[1, :], dt), trapz_map(cycB[1, :], dt)
+            svA = float(np.max(cycA[0, :]) - np.min(cycA[0, :]))
+            svB = float(np.max(cycB[0, :]) - np.min(cycB[0, :]))
             coA = svA * (60.0 / T) / 1000.0
             coB = svB * (60.0 / T) / 1000.0
             errA = float(np.max(np.abs(cycA - prevA)))
             errB = float(np.max(np.abs(cycB - prevB)))
             sep = float(np.max(np.abs(cycA - cycB)))
 
-            fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1]):.6f},{np.min(cycA[1]):.6f},{np.max(cycA[0]):.6f},{np.min(cycA[0]):.6f},{errA:.6e},{sep:.6f}\n")
-            fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1]):.6f},{np.min(cycB[1]):.6f},{np.max(cycB[0]):.6f},{np.min(cycB[0]):.6f},{errB:.6e},{sep:.6f}\n")
+            fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1, :]):.6f},{np.min(cycA[1, :]):.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e},{sep:.6f}\n")
+            fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1, :]):.6f},{np.min(cycB[1, :]):.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e},{sep:.6f}\n")
 
             if abs(r_val - 1.40) < 1e-6:
                 YA6 = rk4_integrate(float(fwd_end[0, idx]), float(fwd_end[1, idx]), float(fwd_end[2, idx]), 1.40, dt, 600.0, 2)
                 YB6 = rk4_integrate(float(rev_end[0, idx]), float(rev_end[1, idx]), float(rev_end[2, idx]), 1.40, dt, 600.0, 2)
                 cA6, pA6 = YA6[:, c_steps:], YA6[:, :c_steps + 1]
                 cB6, pB6 = YB6[:, c_steps:], YB6[:, :c_steps + 1]
-                f140.write(f"SimA_300s,{mA:.6f},{np.max(cycA[0]):.6f},{np.min(cycA[0]):.6f},{errA:.6e}\n")
-                f140.write(f"SimB_300s,{mB:.6f},{np.max(cycB[0]):.6f},{np.min(cycB[0]):.6f},{errB:.6e}\n")
-                f140.write(f"SimA_600s,{trapz_map(cA6[1], dt):.6f},{np.max(cA6[0]):.6f},{np.min(cA6[0]):.6f},{np.max(np.abs(cA6 - pA6)):.6e}\n")
-                f140.write(f"SimB_600s,{trapz_map(cB6[1], dt):.6f},{np.max(cB6[0]):.6f},{np.min(cB6[0]):.6f},{np.max(np.abs(cB6 - pB6)):.6e}\n")
+                f140.write(f"SimA_300s,{mA:.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e}\n")
+                f140.write(f"SimB_300s,{mB:.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e}\n")
+                f140.write(f"SimA_600s,{trapz_map(cA6[1, :], dt):.6f},{np.max(cA6[0, :]):.6f},{np.min(cA6[0, :]):.6f},{np.max(np.abs(cA6 - pA6)):.6e}\n")
+                f140.write(f"SimB_600s,{trapz_map(cB6[1, :], dt):.6f},{np.max(cB6[0, :]):.6f},{np.min(cB6[0, :]):.6f},{np.max(np.abs(cB6 - pB6)):.6e}\n")
 
                 t_arr = np.arange(c_steps + 1) * dt
                 with open("results/processed/coexistence_R140_trajectories.csv", "w") as ft:
@@ -214,11 +214,11 @@ def main():
     v, pa, pv = 120.0, 135.0, (1452.50 - 120.0 - Ca * 135.0) / Cv
     for i in range(len(R_fine)):
         Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, 300.0, 1)
-        f_fine[i] = trapz_map(Yc[1], dt)
+        f_fine[i] = trapz_map(Yc[1, :], dt)
         v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
     for i in range(len(R_fine) - 1, -1, -1):
         Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, 300.0, 1)
-        r_fine[i] = trapz_map(Yc[1], dt)
+        r_fine[i] = trapz_map(Yc[1, :], dt)
         v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
 
     fj_fine = np.where(np.abs(np.diff(f_fine)) > 5.0)[0]
@@ -240,22 +240,22 @@ def main():
     pv0_init = (1452.50 - v0_init - Ca * pa0_init) / Cv
 
     for st_dt in steps_conv:
-        Yc = rk4_integrate(v0_init, pa0_init, pv0_init, 1.40, st_dt, 300.0, 2)
+Yc = rk4_integrate(v0_init, pa0_init, pv0_init, 1.40, st_dt, 300.0, 2)
 cs = int(round(T / st_dt))
 c_last = Yc[:, cs:]
 c_prev = Yc[:, :cs + 1]
-map_conv.append(trapz_map(c_last[1], st_dt))
+map_conv.append(trapz_map(c_last[1, :], st_dt))
 if abs(st_dt - 0.001) < 1e-12:
-pa_1ms = c_last[1]
-v_tot_arr = Yc[0] + Ca * Yc[1] + Cv * Yc[2]
+pa_1ms = c_last[1, :]
+v_tot_arr = Yc[0, :] + Ca * Yc[1, :] + Cv * Yc[2, :]
 v_tot_drift = float(np.max(np.abs(v_tot_arr - 1452.50)))
 per_err_base = float(np.max(np.abs(c_last - c_prev)))
-vlv_max_base = float(np.max(c_last[0]))
-vlv_min_base = float(np.min(c_last[0]))
+vlv_max_base = float(np.max(c_last[0, :]))
+vlv_min_base = float(np.min(c_last[0, :]))
 sv_base = vlv_max_base - vlv_min_base
 co_base = sv_base * (60.0 / T) / 1000.0
 elif abs(st_dt - 0.0001) < 1e-12:
-pa_ref = c_last[1][::10]
+pa_ref = c_last[1, ::10]
 delta_map_unrounded = abs(map_conv[2] - map_conv[3])
 rmse = float(np.sqrt(np.mean((pa_1ms - pa_ref) ** 2)))
 nrmse = rmse / float(np.max(pa_ref) - np.min(pa_ref))
@@ -314,6 +314,7 @@ flog.write("=================================================================\n"
 print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
 if name == "main":
 main()
+
 
 
    
