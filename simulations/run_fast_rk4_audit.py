@@ -335,13 +335,12 @@ with open("results/processed/baseline_summary.csv", "w") as fb:
                 flog.write(f"  -> Fine reverse bracket: [{R_fine[ri_f]:.3f}, {R_fine[ri_f+1]:.3f}] mmHg*s/mL\n")
             else:
                 flog.write("  -> Fine sweep did not exhibit two transition jumps.\n")
-            flog.write("=================================================================\n")
-    
+
+
         print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
-    
-    
-    if __name__ == "__main__":
-        main()
+
+if __name__ == "__main__":
+    main()
 
 
  
