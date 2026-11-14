@@ -19,7 +19,7 @@ on:
       - "requirements.txt"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: cardiovascular-reproducibility-${{ github.ref }}
@@ -65,9 +65,12 @@ jobs:
             python -m pip freeze
           } > results/processed/reproducibility_metadata.txt
 
-      - name: Check Python syntax
+            - name: Check Python syntax
         run: |
+          pip install autopep8
+          autopep8 --in-place simulations/run_fast_rk4_audit.py
           python -m py_compile simulations/run_fast_rk4_audit.py
+
 
       - name: Remove previous generated outputs
         run: |
@@ -153,7 +156,7 @@ jobs:
           path: results/processed/
           if-no-files-found: warn
           retention-days: 90
-
+      - name: Upload reproducibility outputs
            
 
 
