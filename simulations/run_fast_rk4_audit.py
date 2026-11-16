@@ -234,7 +234,7 @@ def main():
         pa = float(Yc[1, -1])
         pv = float(Yc[2, -1])
     for i in range(len(R_fine) - 1, -1, -1):
-        Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, 300.0, 1)
+        Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, sweep_seconds, 1)
         r_fine[i] = trapz_map(Yc[1, :], dt)
         v = float(Yc[0, -1])
         pa = float(Yc[1, -1])
