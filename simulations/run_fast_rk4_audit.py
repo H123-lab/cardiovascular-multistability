@@ -311,9 +311,9 @@ def main():
                 fexec.write(f"3. Unrounded MAP Delta (0.001 s vs 0.0001 s): {delta_map_unrounded:.6e} mmHg\n")
                 fexec.write(f"4. Final-Cycle Curve NRMSE (801 samples): {nrmse:.6e}\n")
                 fexec.write(f"5. Baseline Outputs (Rsys = 1.40): MAP = {m_001:.4f} mmHg | SV = {sv_base:.4f} mL | CO = {co_base:.4f} L/min\n")
-                fexec.write(f"6. Max Successive-Cycle Difference at Rsys=1.40 (300 s): {per_err_base:.6e}\\n")
-                fexec.write(f"7. Max Successive-Cycle Difference at Rsys=1.40 (600 s): {r140_600_cycle_diff:.6e}\\n")
-                fexec.write("8. Periodic-orbit convergence is NOT ESTABLISHED by these finite-duration checks; do not label sweep branches as stable limit cycles without further validation.\\n")
+                fexec.write(f"6. Max Successive-Cycle Difference at Rsys=1.40 (300 s): {per_err_base:.6e}\n")
+                fexec.write(f"7. Max Successive-Cycle Difference at Rsys=1.40 (600 s): {r140_600_cycle_diff:.6e}\n")
+                fexec.write("8. Periodic-orbit convergence is NOT ESTABLISHED by these finite-duration checks; do not label sweep branches as stable limit cycles without further validation.\n")
                 fexec.write("=================================================================\n")
 
         with open("results/processed/audit_sweep_transcript.log", "w") as flog:
@@ -322,7 +322,7 @@ def main():
                 flog.write("=================================================================\n")
                 flog.write(f"Timestamp: {now_str}\n\n")
                 flog.write("ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:\n")
-                flog.write(f"  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, {sweep_seconds:g}s/step, state continuation verified.\\n\\n")
+                flog.write(f"  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, {sweep_seconds:g}s/step, state continuation verified.\n\n")
                 flog.write("ANALYSIS 2 — HYSTERESIS QUANTIFICATION:\n")
                 if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
                     fi = int(fwd_jumps[0])
@@ -339,11 +339,11 @@ def main():
                 target_map_diffs = [abs(float(rows[j][2]) - float(rows[j+1][2])) for j in (0, 2, 4)]
                 target_traj_seps = [float(rows[j][10]) for j in (0, 2, 4)]
                 if max(target_map_diffs + target_traj_seps) <= 1e-8:
-                    flog.write("  -> At all three requested Rsys values, forward/reverse initializations produced numerically indistinguishable recorded cycles; coexistence is NOT demonstrated at 1.30, 1.40, or 1.50.\\n")
+                    flog.write("  -> At all three requested Rsys values, forward/reverse initializations produced numerically indistinguishable recorded cycles; coexistence is NOT demonstrated at 1.30, 1.40, or 1.50.\n")
                 else:
-                    flog.write("  -> At least one requested Rsys value retains a numerical branch difference; it remains a candidate requiring independent persistence/stability validation.\\n")
+                    flog.write("  -> At least one requested Rsys value retains a numerical branch difference; it remains a candidate requiring independent persistence/stability validation.\n")
                 flog.write("  -> The requested Rsys=1.30, 1.40, and 1.50 comparisons must be interpreted from the CSV; a sweep split outside these values does not establish coexistence at these test points.\n\n")
-                flog.write(f"ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, {sweep_seconds:g}s/step):\\n")
+                flog.write(f"ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, {sweep_seconds:g}s/step):\n")
                 if len(fj_fine) > 0 and len(rj_fine) > 0:
                     fi_f = int(fj_fine[0])
                     ri_f = int(rj_fine[0])
