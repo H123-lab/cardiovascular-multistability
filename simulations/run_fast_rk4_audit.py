@@ -36,7 +36,6 @@ def elastance_shape(t_mod):
 def rk4_integrate(v, pa, pv, Rsys, dt, tsim, record_cycles=1):
     N = int(round(tsim / dt))
     c_steps = int(round(T / dt))
-    r140_600_cycle_diff = float("nan")
     rec_len = record_cycles * c_steps + 1
     start_rec = N - record_cycles * c_steps
     inv_Rsys = 1.0 / Rsys
@@ -214,7 +213,6 @@ def main():
                 pA6 = YA6[:, :c_steps + 1]
                 cB6 = YB6[:, c_steps:]
                 pB6 = YB6[:, :c_steps + 1]
-                r140_600_cycle_diff = max(float(np.max(np.abs(cA6 - pA6))), float(np.max(np.abs(cB6 - pB6))))
                 r140_600_cycle_diff = max(float(np.max(np.abs(cA6 - pA6))),
                                            float(np.max(np.abs(cB6 - pB6))))
                 f140.write(f"SimA_300s,{mA:.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e}\n")
