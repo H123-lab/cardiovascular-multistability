@@ -223,7 +223,7 @@ def main():
                         ft.write(f"{t_arr[j]:.6f},{cycA[0,j]:.6f},{cycA[1,j]:.6f},{cycA[2,j]:.6f},{cycB[0,j]:.6f},{cycB[1,j]:.6f},{cycB[2,j]:.6f}\n")
 
     # 4. Finer Grid Robustness (dRsys = 0.01, 300 s per step)
-    R_fine = np.round(np.arange(1.10, 1.701, 0.01), 4)
+    R_fine = np.round(np.arange(1.50, 1.901, 0.01), 4)
     f_fine = np.zeros(len(R_fine))
     r_fine = np.zeros(len(R_fine))
     v, pa, pv = 120.0, 135.0, (1452.50 - 120.0 - Ca * 135.0) / Cv
@@ -315,11 +315,11 @@ def main():
                 flog.write("=================================================================\n")
                 flog.write(f"Timestamp: {now_str}\n\n")
                 flog.write("ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:\n")
-                flog.write("  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, 300s/step, state continuation verified.\n\n")
+                flog.write("  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, {sweep_seconds:g}s/step, state continuation verified.\n\n")
                 flog.write("ANALYSIS 2 — HYSTERESIS QUANTIFICATION:\n")
                 if len(fwd_jumps) > 0 and len(rev_jumps) > 0:
-                    fi = int(fwd_jumps.item(0))
-                    ri = int(rev_jumps.item(0))
+                    fi = int(fwd_jumps[0])
+                    ri = int(rev_jumps[0])
                     Rf = 0.5 * (Rsys_vec[fi] + Rsys_vec[fi + 1])
                     Rr = 0.5 * (Rsys_vec[ri] + Rsys_vec[ri + 1])
                     flog.write(f"  -> Forward bracket: [{Rsys_vec[fi]:.2f}, {Rsys_vec[fi+1]:.2f}] mmHg*s/mL (midpoint Rf = {Rf:.3f})\n")
@@ -328,11 +328,12 @@ def main():
                 else:
                     flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
                 flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
-                flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n\n")
-                flog.write("ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, 300s/step):\n")
+                flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n")
+                flog.write("  -> The requested Rsys=1.30, 1.40, and 1.50 comparisons must be interpreted from the CSV; a sweep split outside these values does not establish coexistence at these test points.\n\n")
+                flog.write("ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, {sweep_seconds:g}s/step):\n")
                 if len(fj_fine) > 0 and len(rj_fine) > 0:
-                    fi_f = int(fj_fine.item(0))
-                    ri_f = int(rj_fine.item(0))
+                    fi_f = int(fj_fine[0])
+                    ri_f = int(rj_fine[0])
                     flog.write(f"  -> Fine forward bracket: [{R_fine[fi_f]:.3f}, {R_fine[fi_f+1]:.3f}] mmHg*s/mL\n")
                     flog.write(f"  -> Fine reverse bracket: [{R_fine[ri_f]:.3f}, {R_fine[ri_f+1]:.3f}] mmHg*s/mL\n")
                 else:
