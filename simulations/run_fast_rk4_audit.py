@@ -340,7 +340,7 @@ def main():
                     flog.write("  -> Fine sweep did not exhibit two transition jumps.\n")
 
 
-            print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
+        print("[SUCCESS] All genuine CSVs and audit transcripts generated.")
 
 if __name__ == "__main__":
     main()
