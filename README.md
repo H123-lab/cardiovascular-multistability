@@ -22,7 +22,7 @@ The conserved volume is V_LV + Ca·Pa + Cv·Pv. The Python implementation in `si
 - Fixed-step classical fourth-order Runge–Kutta integration.
 - Default time step: 0.001 s (800 integration steps per cardiac period).
 - Forward and reverse Rsys continuation: 0.80–2.00 mmHg·s/mL, 0.02 increments, 300 s per point in the full reproducibility workflow.
-- Fine-grid diagnostic sweep: 1.50–1.90 mmHg·s/mL, 0.01 increments.
+- Fine-grid diagnostic sweep: 1.50–1.90 mmHg·s/mL, 0.01 increments; transition brackets are recorded in the sweep audit log.
 - Requested branch-initialization comparisons at Rsys = 1.30, 1.40, and 1.50.
 - Baseline time-step comparison: 0.01, 0.005, 0.001, and 0.0001 s.
 - Global stressed-volume conservation is checked from the simulated state trajectory.
@@ -54,7 +54,6 @@ The repository currently does **not** assert a validated bistable Rsys interval 
 The full workflow creates the following files under `results/processed/`:
 
 - `forward_sweep.csv`, `reverse_sweep.csv`, `sweep_comparison.csv`
-- `fine_sweep_comparison.csv`
 - `coexistence_multi_Rsys_summary.csv`, `coexistence_R140_summary.csv`, `coexistence_R140_trajectories.csv`
 - `baseline_summary.csv`, `solver_convergence.csv`
 - `audit_sweep_transcript.log`, `audit_execution_transcript.log`
