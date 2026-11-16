@@ -1,78 +1,49 @@
-
 name: Reproduce Cardiovascular Model Results
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "simulations/**"
-      - "model/**"
-      - "results/**"
-      - ".github/workflows/generate_sweep_csvs.yml"
-      - "requirements.txt"
   pull_request:
     paths:
-      - "simulations/**"
-      - "model/**"
-      - "results/**"
-      - ".github/workflows/generate_sweep_csvs.yml"
-      - "requirements.txt"
+      - 'simulations/**'
+      - 'model/**'
+      - '.github/workflows/generate_sweep_csvs.yml'
+      - 'requirements.txt'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: cardiovascular-reproducibility-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  generate-results:
-    name: Generate and verify numerical outputs
+  generate-and-verify-results:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-
     steps:
       - name: Check out repository revision
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
           cache: pip
-
       - name: Install pinned numerical dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install \
-            numpy==2.1.3 \
-            numba==0.61.2 \
-            llvmlite==0.44.0
-
+          python -m pip install numpy==2.1.3 numba==0.61.2 llvmlite==0.44.0
       - name: Record execution environment
         run: |
           mkdir -p results/processed
           {
             echo "Repository: $GITHUB_REPOSITORY"
             echo "Commit: $(git rev-parse HEAD)"
-            echo "Branch: $GITHUB_REF"
+            echo "Ref: $GITHUB_REF"
             echo "Python: $(python --version)"
             echo "UTC execution time: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            echo ""
-            echo "Installed packages:"
             python -m pip freeze
           } > results/processed/reproducibility_metadata.txt
-
-        - name: Check Python syntax
-        run: |
-          pip install autopep8
-          autopep8 --in-place simulations/run_fast_rk4_audit.py
-          python -m py_compile simulations/run_fast_rk4_audit.py
-
-
-      - name: Remove previous generated outputs
+      - name: Remove stale generated outputs
         run: |
           rm -f results/processed/forward_sweep.csv
           rm -f results/processed/reverse_sweep.csv
@@ -82,89 +53,58 @@ jobs:
           rm -f results/processed/coexistence_R140_trajectories.csv
           rm -f results/processed/baseline_summary.csv
           rm -f results/processed/solver_convergence.csv
-          rm -f results/processed/audit_execution_transcript.log
           rm -f results/processed/audit_sweep_transcript.log
-
-      - name: Execute numerical simulation and audit
-        run: |
-          python simulations/run_fast_rk4_audit.py
-
-      - name: Verify generated files
-        run: |
-          set -euo pipefail
-
-          required_files=(
-            forward_sweep.csv
-            reverse_sweep.csv
-            sweep_comparison.csv
-            coexistence_multi_Rsys_summary.csv
-            coexistence_R140_summary.csv
-            coexistence_R140_trajectories.csv
-            baseline_summary.csv
-            solver_convergence.csv
-            audit_execution_transcript.log
-            audit_sweep_transcript.log
-          )
-
-          for file in "${required_files[@]}"; do
-            path="results/processed/$file"
-
-            if [ ! -s "$path" ]; then
-              echo "::error::Missing or empty output: $path"
-              exit 1
-            fi
-
-            echo "Verified: $path"
-          done
-
-      - name: Verify expected data dimensions
+          rm -f results/processed/audit_execution_transcript.log
+      - name: Compile audit script
+        run: python -m py_compile simulations/run_fast_rk4_audit.py
+      - name: Run full 300-second-per-point audit
+        env:
+          AUDIT_SWEEP_SECONDS: '300'
+          AUDIT_BASELINE_SECONDS: '300'
+        run: python simulations/run_fast_rk4_audit.py
+      - name: Verify generated outputs and dimensions
         run: |
           python - <<'PY'
           import csv
           from pathlib import Path
-
-          base = Path("results/processed")
-
+          base = Path('results/processed')
           expected = {
-              "forward_sweep.csv": 62,
-              "reverse_sweep.csv": 62,
-              "sweep_comparison.csv": 62,
-              "coexistence_multi_Rsys_summary.csv": 7,
-              "coexistence_R140_trajectories.csv": 802,
-              "solver_convergence.csv": 5,
+              'forward_sweep.csv': 62,
+              'reverse_sweep.csv': 62,
+              'sweep_comparison.csv': 62,
+              'coexistence_multi_Rsys_summary.csv': 7,
+              'coexistence_R140_summary.csv': 5,
+              'coexistence_R140_trajectories.csv': 802,
+              'baseline_summary.csv': 6,
+              'solver_convergence.csv': 5,
           }
-
-          for filename, expected_rows in expected.items():
-              path = base / filename
-              with path.open(newline="") as f:
-                  rows = list(csv.reader(f))
-
-              if len(rows) != expected_rows:
-                  raise SystemExit(
-                      f"{filename}: expected {expected_rows} rows "
-                      f"including header; found {len(rows)}"
-                  )
-
-              print(f"{filename}: {len(rows)-1} data rows verified")
+          for name, nrows in expected.items():
+              path = base / name
+              assert path.is_file() and path.stat().st_size > 0, f'missing/empty {name}'
+              with path.open(newline='') as stream:
+                  rows = list(csv.reader(stream))
+              assert len(rows) == nrows, f'{name}: expected {nrows} rows, got {len(rows)}'
+              print(f'PASS {name}: {nrows-1} data rows')
+          for name in ('audit_sweep_transcript.log','audit_execution_transcript.log'):
+              path = base / name
+              assert path.is_file() and path.stat().st_size > 0, f'missing/empty {name}'
+              print(f'PASS {name}')
           PY
-
-      - name: Upload reproducibility outputs
-        if: always()
+      - name: Upload full reproducibility outputs
         uses: actions/upload-artifact@v4
         with:
-          name: cardiovascular-results-${{ github.sha }}
-          path: results/processed/
-          if-no-files-found: warn
+          name: cardiovascular-reproducibility-${{ github.sha }}
+          path: |
+            results/processed/forward_sweep.csv
+            results/processed/reverse_sweep.csv
+            results/processed/sweep_comparison.csv
+            results/processed/coexistence_multi_Rsys_summary.csv
+            results/processed/coexistence_R140_summary.csv
+            results/processed/coexistence_R140_trajectories.csv
+            results/processed/baseline_summary.csv
+            results/processed/solver_convergence.csv
+            results/processed/audit_sweep_transcript.log
+            results/processed/audit_execution_transcript.log
+            results/processed/reproducibility_metadata.txt
+          if-no-files-found: error
           retention-days: 90
-      
-           
-
-
-
-
-
-
-      
-
-
-

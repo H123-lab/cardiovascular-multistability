@@ -1,4 +1,5 @@
-numpy>=1.22.0
+numpy>=2.0
 scipy>=1.8.0
 matplotlib>=3.5.0
 oct2py>=5.5.0
+numba>=0.61
