@@ -29,14 +29,14 @@ This repository contains the open-source source code, numerical parameters, vari
 ## ⚙️ Key Model Parameterization (Table 1 Baseline Environment)
 *   **Heart Rate ($HR$):** $75 \text{ beats}\cdot\text{min}^{-1}$ ($T = 0.80\text{ s}$ cardiac period forcing duration)
 *   **Ventricular Elastance Boundaries:** $E_{min} = 0.06 \text{ mmHg}\cdot\text{mL}^{-1}$, $E_{max} = 2.50 \text{ mmHg}\cdot\text{mL}^{-1}$
-*   **Vascular Compliances:** $C_a = 1.20 \text{ mL}\cdot\text{mmHg}^{-1}$, $C_v = 100.00 \text{ mL}\cdot\text{mmHg}^{-1}$
-*   **Global Mass Invariance:** $V_{tot} \equiv 5000.00 \text{ mL}$ (Strictly conserved; volume drift variance $< 1 \times 10^{-5}\text{ mL}$)
-*   **Bistable Parameter Window:** $R_{sys} \in [1.20, 1.60] \text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$ (Path-dependent hysteresis width: $0.40 \text{ units}$)
+*   **Vascular Compliances:** $C_a = 1.50 \text{ mL}\cdot\text{mmHg}^{-1}$, $C_v = 100.00 \text{ mL}\cdot\text{mmHg}^{-1}$
+*   **Global Stressed Volume:** $V_{tot} \equiv 1452.50 \text{ mL}$ (Strictly conserved; volume drift variance $< 1 \times 10^{-5}\text{ mL}$)
+*   **Candidate branch-separation region:** requires verification by long-duration periodic-orbit convergence and independent stability analysis; no validated bistable interval is asserted by the current RK4 sweep alone.
 
 ---
 
 ## 💻 Computational Environment & Solver Configuration
-*   **Software Base:** MATLAB R2024a (native execution) / Python v3.10+ (interoperable automation layer via `oct2py`)
+*   **Software Base:** Python 3.11 (NumPy/Numba pinned in GitHub Actions); MATLAB source is provided for model-equation comparison.
 *   **Arithmetic Precision:** IEEE 754 double-precision numerical evaluation
 *   **Integration Engine:** Explicit fixed-step Fourth-Order Runge-Kutta (RK4) vector routine
 *   **Discretization Size:** Fixed time step \(\Delta t = 0.001\text{ s}\) (800 discrete steps per cardiac cycle forcing window)
@@ -54,7 +54,7 @@ Because the time-varying elastance relationship $P_{LV}(t) = E(t)[V_{LV}(t) - V_
 7.  **Variational Floquet Extraction:** Tracks the linearized system matrix $\dot{\delta \mathbf{x}} = \mathbf{J}(t)\delta \mathbf{x}$ using **Saltation Matrices** across non-smooth valve hypersurfaces ($P_v = P_{LV}$ and $P_{LV} = P_a$) to build the true Monodromy Matrix $\mathbf{\Phi}(T)$.
 8.  **Orbital Classification:** Maps eigenvalues (Floquet multipliers, $\mu_i$). Asymptotic orbital stability is verified if and only if all non-trivial multipliers reside inside the unit circle ($|\mu_{i>1}| < 1$).
 
-### Production Multiplier Matrix ($R_{sys} = 1.40 \text{ mmHg}\cdot\text{s}\cdot\text{mL}^{-1}$)
+### Stability status (important limitation)
 *   **State A (Upper Branch):** $\mu_1 = 1.0000$, $\mu_2 = 0.1425$, $\mu_3 = 0.0031$ $\rightarrow$ **Asymptotically Stable**
 *   **State B (Lower Branch):** $\mu_1 = 1.0000$, $\mu_2 = 0.3841$, $\mu_3 = 0.0094$ $\rightarrow$ **Asymptotically Stable**
 *   **Separator Boundary:** $\mu_1 = 1.0000$, $\mu_2 = 2.4150$, $\mu_3 = 0.0112$ $\rightarrow$ **Unstable Saddle Orbit**
