@@ -178,6 +178,8 @@ def main():
     # 3. Coexisting Responses at Rsys = 1.30, 1.40, 1.50
     c_steps = int(round(T / dt))
     r140_600_cycle_diff = float("nan")
+    target_map_diffs = []
+    target_traj_seps = []
     with open("results/processed/coexistence_multi_Rsys_summary.csv", "w") as fc, \
          open("results/processed/coexistence_R140_summary.csv", "w") as f140:
         fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\n")
@@ -202,6 +204,8 @@ def main():
             errA = float(np.max(np.abs(cycA - prevA)))
             errB = float(np.max(np.abs(cycB - prevB)))
             sep = float(np.max(np.abs(cycA - cycB)))
+            target_map_diffs.append(abs(mA - mB))
+            target_traj_seps.append(sep)
 
             fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1, :]):.6f},{np.min(cycA[1, :]):.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e},{sep:.6f}\n")
             fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1, :]):.6f},{np.min(cycB[1, :]):.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e},{sep:.6f}\n")
@@ -339,8 +343,6 @@ def main():
                     flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
                 flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
                 flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n")
-                target_map_diffs = [abs(float(rows[j][2]) - float(rows[j+1][2])) for j in (0, 2, 4)]
-                target_traj_seps = [float(rows[j][10]) for j in (0, 2, 4)]
                 if max(target_map_diffs + target_traj_seps) <= 1e-8:
                     flog.write("  -> At all three requested Rsys values, forward/reverse initializations produced numerically indistinguishable recorded cycles; coexistence is NOT demonstrated at 1.30, 1.40, or 1.50.\n")
                 else:
