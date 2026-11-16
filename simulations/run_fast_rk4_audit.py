@@ -1,4 +1,5 @@
 import os
+import csv
 import math
 from datetime import datetime, timezone
 import numpy as np
@@ -296,6 +297,10 @@ def main():
             fs.write("Time_Step_s,Integrated_MAP_mmHg\n")
             for s_i in range(len(steps_conv)):
                 fs.write(f"{steps_conv[s_i]:.4f},{map_conv[s_i]:.6f}\n")
+
+        # Read the generated comparison rows for transcript interpretation.
+        with open("results/processed/coexistence_multi_Rsys_summary.csv", newline="") as fcsv:
+            rows = list(csv.reader(fcsv))[1:]
 
         # 6. Write Both Audit Logs
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
