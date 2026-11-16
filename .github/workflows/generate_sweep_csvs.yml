@@ -43,6 +43,18 @@ jobs:
             echo "UTC execution time: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             python -m pip freeze
           } > results/processed/reproducibility_metadata.txt
+      - name: Remove stale generated outputs
+        run: |
+          rm -f results/processed/forward_sweep.csv
+          rm -f results/processed/reverse_sweep.csv
+          rm -f results/processed/sweep_comparison.csv
+          rm -f results/processed/coexistence_multi_Rsys_summary.csv
+          rm -f results/processed/coexistence_R140_summary.csv
+          rm -f results/processed/coexistence_R140_trajectories.csv
+          rm -f results/processed/baseline_summary.csv
+          rm -f results/processed/solver_convergence.csv
+          rm -f results/processed/audit_sweep_transcript.log
+          rm -f results/processed/audit_execution_transcript.log
       - name: Compile audit script
         run: python -m py_compile simulations/run_fast_rk4_audit.py
       - name: Run full 300-second-per-point audit
@@ -82,6 +94,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cardiovascular-reproducibility-${{ github.sha }}
-          path: results/processed/
+          path: |
+            results/processed/forward_sweep.csv
+            results/processed/reverse_sweep.csv
+            results/processed/sweep_comparison.csv
+            results/processed/coexistence_multi_Rsys_summary.csv
+            results/processed/coexistence_R140_summary.csv
+            results/processed/coexistence_R140_trajectories.csv
+            results/processed/baseline_summary.csv
+            results/processed/solver_convergence.csv
+            results/processed/audit_sweep_transcript.log
+            results/processed/audit_execution_transcript.log
+            results/processed/reproducibility_metadata.txt
           if-no-files-found: error
           retention-days: 90
