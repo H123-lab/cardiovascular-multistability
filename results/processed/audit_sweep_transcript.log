@@ -1,0 +1,21 @@
+=================================================================
+         FOUR-ANALYSIS SWEEP & HYSTERESIS AUDIT REPORT           
+=================================================================
+Timestamp: 2026-11-16 17:59:29 UTC
+
+ANALYSIS 1 — FORWARD/REVERSE SWEEP RECONSTRUCTION:
+  -> 61 ascending points [0.80, 2.00], dRsys = 0.02, 300s/step, state continuation verified.
+
+ANALYSIS 2 — HYSTERESIS QUANTIFICATION:
+  -> Forward bracket: [1.80, 1.82] mmHg*s/mL (midpoint Rf = 1.810)
+  -> Reverse bracket: [1.56, 1.58] mmHg*s/mL (midpoint Rr = 1.570)
+  -> Hysteresis width Delta_Rsys = |Rf - Rr| = 0.240 mmHg*s/mL
+
+ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):
+  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv
+  -> At all three requested Rsys values, forward/reverse initializations produced numerically indistinguishable recorded cycles; coexistence is NOT demonstrated at 1.30, 1.40, or 1.50.
+  -> The requested Rsys=1.30, 1.40, and 1.50 comparisons must be interpreted from the CSV; a sweep split outside these values does not establish coexistence at these test points.
+
+ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, 300s/step):
+  -> Fine forward bracket: [1.810, 1.820] mmHg*s/mL
+  -> Fine reverse bracket: [1.570, 1.580] mmHg*s/mL
