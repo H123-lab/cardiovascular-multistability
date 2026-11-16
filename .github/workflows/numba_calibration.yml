@@ -1,9 +1,7 @@
 name: Numba parameter calibration scan
 
 on:
-  push:
-    branches:
-      - calibration/numba-grid-scan-20261116
+  pull_request:
     paths:
       - 'simulations/calibrate_numba_grid.py'
       - '.github/workflows/numba_calibration.yml'
