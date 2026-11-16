@@ -176,6 +176,7 @@ def main():
 
     # 3. Coexisting Responses at Rsys = 1.30, 1.40, 1.50
     c_steps = int(round(T / dt))
+    r140_600_cycle_diff = float("nan")
     with open("results/processed/coexistence_multi_Rsys_summary.csv", "w") as fc, \
          open("results/processed/coexistence_R140_summary.csv", "w") as f140:
         fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\n")
@@ -211,6 +212,8 @@ def main():
                 pA6 = YA6[:, :c_steps + 1]
                 cB6 = YB6[:, c_steps:]
                 pB6 = YB6[:, :c_steps + 1]
+                r140_600_cycle_diff = max(float(np.max(np.abs(cA6 - pA6))),
+                                           float(np.max(np.abs(cB6 - pB6))))
                 f140.write(f"SimA_300s,{mA:.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e}\n")
                 f140.write(f"SimB_300s,{mB:.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e}\n")
                 f140.write(f"SimA_600s,{trapz_map(cA6[1, :], dt):.6f},{np.max(cA6[0, :]):.6f},{np.min(cA6[0, :]):.6f},{np.max(np.abs(cA6 - pA6)):.6e}\n")
