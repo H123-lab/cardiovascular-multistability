@@ -1,0 +1,15 @@
+=================================================================
+         REPRODUCIBILITY AUDIT TASK COMPLIANCE STATEMENT         
+=================================================================
+Execution Timestamp: 2026-11-16 17:59:29 UTC
+Numerical Solver Engine: Shared RK4 Core (Nonlinear Model)
+
+1. Global Stressed-Volume Drift (300 s): 8.435563e-11 mL
+2. Integrated MAP (0.01 / 0.005 / 0.001 / 0.0001 s): 156.8443 / 156.8065 / 156.7924 / 156.7880 mmHg
+3. Unrounded MAP Delta (0.001 s vs 0.0001 s): 4.373283e-03 mmHg
+4. Final-Cycle Curve NRMSE (801 samples): 1.000378e-04
+5. Baseline Outputs (Rsys = 1.40): MAP = 156.7924 mmHg | SV = 83.5636 mL | CO = 6.2673 L/min
+6. Max Successive-Cycle Difference at Rsys=1.40 (300 s): 2.240142e-02
+7. Max Successive-Cycle Difference at Rsys=1.40 (600 s): 2.402577e-01
+8. Periodic-orbit convergence is NOT ESTABLISHED by these finite-duration checks; do not label sweep branches as stable limit cycles without further validation.
+=================================================================
