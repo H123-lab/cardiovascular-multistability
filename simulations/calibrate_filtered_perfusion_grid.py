@@ -21,9 +21,9 @@ def elast(t):
     return 0.0
 
 @njit
-def rhs(y,t,r,vtot,pcrit,ksig,tau):
+def rhs(y,t,r,vtot,pcrit,ksig,tau,beta):
     v,pa,pv,pm=y
-    perf=ALPHA+(1.0-ALPHA)/(1.0+math.exp(-((pm-(70.0*r+pcrit))/ksig)))
+    perf=ALPHA+(1.0-ALPHA)/(1.0+math.exp(-((pm-(beta*r+pcrit))/ksig)))
     plv=(EMIN+(EMAX*perf-EMIN)*elast(t%T))*(v-V0)
     qmv=(pv-plv)/RMV if pv>plv else 0.0
     qav=(plv-pa)/RAV if plv>pa else 0.0
@@ -31,17 +31,17 @@ def rhs(y,t,r,vtot,pcrit,ksig,tau):
     return np.array([qmv-qav,(qav-qsys)/CA,(qsys-qmv)/CV,(pa-pm)/tau])
 
 @njit
-def integrate(y0,r,seconds,vtot,pcrit,ksig,tau):
+def integrate(y0,r,seconds,vtot,pcrit,ksig,tau,beta):
     n=int(round(seconds/DT)); c=int(round(T/DT))
     y=y0.copy(); rec=np.zeros((4,2*c+1))
     start=n-2*c
     if start==0: rec[:,0]=y
     for k in range(n):
         t=k*DT
-        k1=rhs(y,t,r,vtot,pcrit,ksig,tau)
-        k2=rhs(y+0.5*DT*k1,t+0.5*DT,r,vtot,pcrit,ksig,tau)
-        k3=rhs(y+0.5*DT*k2,t+0.5*DT,r,vtot,pcrit,ksig,tau)
-        k4=rhs(y+DT*k3,t+DT,r,vtot,pcrit,ksig,tau)
+        k1=rhs(y,t,r,vtot,pcrit,ksig,tau,beta)
+        k2=rhs(y+0.5*DT*k1,t+0.5*DT,r,vtot,pcrit,ksig,tau,beta)
+        k3=rhs(y+0.5*DT*k2,t+0.5*DT,r,vtot,pcrit,ksig,tau,beta)
+        k4=rhs(y+DT*k3,t+DT,r,vtot,pcrit,ksig,tau,beta)
         y += (DT/6.0)*(k1+2*k2+2*k3+k4)
         step=k+1
         if step>=start: rec[:,step-start]=y
@@ -59,7 +59,7 @@ def seed(vtot):
     pv=(vtot-v-CA*pa)/CV
     return np.array([v,pa,pv,pa],dtype=np.float64)
 
-def branch_seed(vtot,pcrit,ksig,tau,reverse=False):
+def branch_seed(vtot,pcrit,ksig,tau,beta,reverse=False):
     # Short continuation establishes distinct path-dependent initializations only;
     # final acceptance is based on 300/600-s convergence at each target.
     y=seed(vtot)
@@ -67,7 +67,7 @@ def branch_seed(vtot,pcrit,ksig,tau,reverse=False):
     if reverse: grid=grid[::-1]
     states={}
     for r in grid:
-        y,_=integrate(y,float(r),2.4,vtot,pcrit,ksig,tau)
+        y,_=integrate(y,float(r),2.4,vtot,pcrit,ksig,tau,beta)
         states[round(float(r),2)]=y.copy()
     out=[]
     for target in TARGETS:
@@ -75,16 +75,16 @@ def branch_seed(vtot,pcrit,ksig,tau,reverse=False):
         out.append(states[round(float(grid[idx]),2)].copy())
     return out
 
-def test_branches(vtot,pcrit,ksig,tau):
-    fseeds=branch_seed(vtot,pcrit,ksig,tau,False)
-    rseeds=branch_seed(vtot,pcrit,ksig,tau,True)
+def test_branches(vtot,pcrit,ksig,tau,beta):
+    fseeds=branch_seed(vtot,pcrit,ksig,tau,beta,False)
+    rseeds=branch_seed(vtot,pcrit,ksig,tau,beta,True)
     rows=[]; allpass=True
     for j,r in enumerate(TARGETS):
         ends=[]; cycles=[]; metrics=[]
         for label,y0 in (("forward",fseeds[j]),("reverse",rseeds[j])):
-            y300,rec300=integrate(y0,r,300.0,vtot,pcrit,ksig,tau)
+            y300,rec300=integrate(y0,r,300.0,vtot,pcrit,ksig,tau,beta)
             map300,d300,last300=cycle_stats(rec300)
-            y600,rec600=integrate(y300,r,300.0,vtot,pcrit,ksig,tau)
+            y600,rec600=integrate(y300,r,300.0,vtot,pcrit,ksig,tau,beta)
             map600,d600,last600=cycle_stats(rec600)
             ends.append(last600); metrics.append((label,map300,d300,map600,d600))
             if not (d300<1e-8 and d600<1e-8): allpass=False
@@ -103,22 +103,20 @@ def main():
     for n,(vtot,ksig,tau,pcrit,beta) in enumerate(combos,1):
         # beta_R is explicit in the requested grid (not fixed at the legacy value).
         # Pass it via module-level temporary parameter by scaling the afterload term.
-        global BETA_CURRENT
-        BETA_CURRENT=beta
-        y0=seed(vtot)
-        y300,rec300=integrate(y0,1.40,300.0,vtot,pcrit,ksig,tau)
+            y0=seed(vtot)
+        y300,rec300=integrate(y0,1.40,300.0,vtot,pcrit,ksig,tau,beta)
         m300,d300,_=cycle_stats(rec300)
         row={"V_total_mL":vtot,"k_sig_mmHg":ksig,"tau_p_s":tau,"P_crit_mmHg":pcrit,
              "alpha":ALPHA,"beta_R":beta,"MAP_300_mmHg":m300,"Cycle_Diff_300":d300,
              "MAP_600_mmHg":"","Cycle_Diff_600":"","baseline_gate":False,
              "hysteresis_gate":False,"all_gates":False}
         if 90.0<=m300<=105.0 and d300<1e-8:
-            y600,rec600=integrate(y300,1.40,300.0,vtot,pcrit,ksig,tau)
+            y600,rec600=integrate(y300,1.40,300.0,vtot,pcrit,ksig,tau,beta)
             m600,d600,_=cycle_stats(rec600)
             row["MAP_600_mmHg"]=m600; row["Cycle_Diff_600"]=d600
             row["baseline_gate"]=bool(90.0<=m600<=105.0 and d600<1e-8)
             if row["baseline_gate"]:
-                hg,details=test_branches(vtot,pcrit,ksig,tau)
+                hg,details=test_branches(vtot,pcrit,ksig,tau,beta)
                 row["hysteresis_gate"]=bool(hg)
                 row["all_gates"]=bool(hg)
                 row["branch_details"]=details
