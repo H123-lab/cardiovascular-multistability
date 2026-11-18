@@ -8,7 +8,7 @@ VTOT=950.0; KSIG=2.5; TAU=2.0; PCRIT=25.0; BETA=45.0; ALPHA=0.72
 EMAX=2.0; EMIN=0.06; V0=10.0; CA=1.5; CV=100.0
 RAV=0.01; RMV=0.008
 TARGETS=(1.30,1.40,1.50)
-CHECKPOINTS=(300,600,1200,2000)
+CHECKPOINTS=(300,600,1200,1500,2000)
 OUT=Path("results/diagnostic/slow_drift_best_candidate"); OUT.mkdir(parents=True,exist_ok=True)
 
 @njit
