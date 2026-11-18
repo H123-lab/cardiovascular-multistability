@@ -2,6 +2,10 @@ name: Filtered perfusion diagnostic (tau_p=2s)
 on:
   push:
     branches: [diagnostic/mean-perfusion-tau2-20261118]
+  pull_request:
+    paths:
+      - 'simulations/diagnose_filtered_perfusion.py'
+      - '.github/workflows/filtered_perfusion_diagnostic.yml'
   workflow_dispatch:
 permissions:
   contents: read
