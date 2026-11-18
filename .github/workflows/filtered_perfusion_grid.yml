@@ -1,6 +1,8 @@
 name: Focused filtered-perfusion calibration
 
 on:
+  push:
+    branches: [diagnostic/filtered-perfusion-focused-grid-20261118]
   pull_request:
     branches: [main]
     paths:
