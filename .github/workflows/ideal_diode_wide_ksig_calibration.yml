@@ -1,0 +1,57 @@
+name: Original Ideal-Diode Wide-k_sig Calibration
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'simulations/calibrate_ideal_diode_wide_ksig.py'
+      - '.github/workflows/ideal_diode_wide_ksig_calibration.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ideal-diode-wide-ksig-calibration-\${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  calibration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install pinned numerical dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy==2.1.3 numba==0.61.2 llvmlite==0.44.0
+      - name: Compile calibration
+        run: python -m py_compile simulations/calibrate_ideal_diode_wide_ksig.py
+      - name: Run deterministic parameter calibration
+        run: python simulations/calibrate_ideal_diode_wide_ksig.py
+      - name: Verify calibration outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('calibration_results')
+          for name in ('ideal_diode_wide_ksig_calibration.csv','summary.json','calibration_execution_transcript.log'):
+              f = p / name
+              assert f.is_file() and f.stat().st_size > 0, f'missing/empty {name}'
+              print(f'PASS {name}: {f.stat().st_size} bytes')
+          s = json.loads((p / 'summary.json').read_text())
+          assert s['model'].startswith('original 3-state ideal-diode')
+          assert s['valves'].startswith('strict one-way')
+          assert s['dt_s'] == 0.001
+          print('Candidate found:', s['candidate_found'])
+          PY
+      - name: Upload calibration evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ideal-diode-wide-ksig-calibration-\${{ github.sha }}
+          path: calibration_results/
+          if-no-files-found: error
+          retention-days: 90
