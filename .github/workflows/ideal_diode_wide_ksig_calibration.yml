@@ -51,7 +51,7 @@ jobs:
       - name: Upload calibration evidence
         uses: actions/upload-artifact@v4
         with:
-          name: ideal-diode-wide-ksig-calibration-\${{ github.sha }}
+          name: ideal-diode-wide-ksig-calibration
           path: calibration_results/
           if-no-files-found: error
           retention-days: 90
