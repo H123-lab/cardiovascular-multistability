@@ -98,21 +98,6 @@ def main():
       for i,rval in enumerate(best[5]): w.writerow([rval,best[6][i],best[7][i],abs(best[6][i]-best[7][i])])
     # Time-step convergence and 100-s component-resolved drift. Start from identical
     # physiological state and use identical phase (t=0) for every dt.
-    rows=[]
-    for dt in DT_LIST:
-      v,pa,pv=initial()
-      for sec in range(100,1001,100):
-        # integrate from current state in 100-s blocks; cycle diff from final two cycles
-        v,pa,pv,diff,mapv,cyc=run(v,pa,pv,1.40,dt,100.0,pc,br,1.2)
-        c=int(round(T/dt))
-        # run() returns max across all components; calculate separate component diffs
-        # by obtaining last-cycle pair in a dedicated return below is represented by cyc.
-        # cyc has only final cycle, so compute prior cycle with a second full-window state capture.
-        # Instead rerun to the same checkpoint from the original initial condition with record buffer.
-        # The component values are emitted from the checkpoint integrator below.
-        rows.append([dt,sec,diff,mapv])
-    with (OUT/"dt_cycle_diff_overall.csv").open("w",newline="") as f:
-      w=csv.writer(f); w.writerow(["dt_s","time_s","Cycle_Diff_max_all_states","MAP_final_cycle"]); w.writerows(rows)
     # Component-resolved checkpoints and dt comparison: one continuous integration,
     # recording full trajectory so cycle n and n-1 are aligned by cardiac phase.
     comp=[]
@@ -133,6 +118,14 @@ def main():
         comp.append([dt,sec,*vals,float(np.max(vals))])
     with (OUT/"component_cycle_drift_100s.csv").open("w",newline="") as f:
       w=csv.writer(f); w.writerow(["dt_s","time_s","Cycle_Diff_VLV_mL","Cycle_Diff_Pa_mmHg","Cycle_Diff_Pv_mmHg","Cycle_Diff_max"]); w.writerows(comp)
+    # Derive the overall metric from the same uninterrupted trajectory records as the
+    # component-resolved table (do not reset cardiac phase in 100-s blocks).
+    with (OUT/"dt_cycle_diff_overall.csv").open("w",newline="") as f:
+      w=csv.writer(f); w.writerow(["dt_s","time_s","Cycle_Diff_max_all_states"])
+      for dt in DT_LIST:
+        for sec in range(100,1001,100):
+          row=next(x for x in comp if x[0]==dt and x[1]==sec)
+          w.writerow([dt,sec,row[5]])
     # Compare final-cycle trajectories across dt after interpolation to common phase grid.
     # All steps divide T exactly, so select every 4th/2nd point for common dt=0.001 phase grid.
     # Include fixed Rsys=1.40 and, only if coarse sweep indicates a split in the bracket,
@@ -148,6 +141,8 @@ def main():
       "calibration_grid":{"P_crit":[10,15,20,25,30,35,40,45,50],"beta_R":[20,25,30,35,40,45,50,55,60],"Rsys_sweep":[1.1,1.7,0.05],"seconds_per_sweep_point":20},
       "selected_coarse_candidate":{"P_crit":pc,"beta_R":br,"score":best[0],"mean_MAP_at_Rsys_1.30_1.40_1.50":best[3],"forward_reverse_MAP_splits":best[4]},
       "candidate_is_proven_bistable":False,
+      "forward_reverse_split_bracket_Rsys":[1.25,1.55],
+      "split_threshold_mmHg":1.0,
       "interpretation":"Coarse screening only; continuation split and normotensive MAP are necessary screening criteria, not proof of two stable attractors. Inspect saved sweep and component-cycle files.",
       "dt_values":DT_LIST
     }
