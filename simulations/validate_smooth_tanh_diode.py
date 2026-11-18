@@ -50,7 +50,7 @@ def integrate(v,pa,pv,R,seconds,dt):
         for z in range(3): arr[z,j]=ring[z,q]
     prev=arr[:,:c+1]; last=arr[:,c:]
     diffs=np.max(np.abs(last-prev),axis=1)
-    mapv=np.trapezoid(last[1,:],dx=dt)/T
+    mapv=(0.5*last[1,0]+np.sum(last[1,1:-1])+0.5*last[1,-1])*dt/T
     sep=0.0
     return v,pa,pv,diffs,mapv,last
 
