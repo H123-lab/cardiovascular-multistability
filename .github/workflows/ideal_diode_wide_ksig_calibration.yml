@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ideal-diode-wide-ksig-calibration-\${{ github.event.pull_request.number }}
+  group: ideal-diode-wide-ksig-calibration
   cancel-in-progress: false
 
 jobs:
