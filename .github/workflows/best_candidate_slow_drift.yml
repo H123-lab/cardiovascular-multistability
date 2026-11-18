@@ -36,7 +36,7 @@ jobs:
           with (p/'cycle_drift_checkpoints.csv').open(newline='') as f: a=list(csv.DictReader(f))
           with (p/'forward_reverse_separation_1500_2000s.csv').open(newline='') as f: b=list(csv.DictReader(f))
           s=json.loads((p/'diagnostic_summary.json').read_text())
-          assert len(a)==24, len(a)
+          assert len(a)==30, len(a)
           assert len(b)==6, len(b)
           assert len(s['cycle_decay_log_fits'])==6
           print(f'Validated {len(a)} cycle checkpoints and {len(b)} branch-separation measurements.')
