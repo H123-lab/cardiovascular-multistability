@@ -7,13 +7,13 @@ OUT=Path("double_cosine_results"); OUT.mkdir(exist_ok=True)
 DT=0.001; T=0.80; C_STEPS=800; SYS_STEPS=240
 EMAX=2.0; EMIN=0.06; V0=10.0; CA=1.5; CV=100.0
 RAV=0.01; RMV=0.008; PERIODICITY=1e-8
-TARGETS=(1.30,1.40,1.50)
-# Focused beta_R follow-up for the proposed candidate; all other parameters fixed.
+TARGETS=(1.24,1.32,1.40)
+# Retest the beta_R=40 candidate with independent reverse continuation.
 ALPHAS=(0.50,)
 K_SIGS=(2.0,)
 V_TOTALS=(1000.0,)
 P_CRITS=(50.0,)
-BETAS=(42.0,43.0,44.0)
+BETAS=(40.0,)
 
 @njit
 def elastance_shape(step_phase):
@@ -88,7 +88,7 @@ def initial(vtotal):
 def sweep_branch(vtotal,pcrit,beta,ksig,alpha):
     # 20-s continuation over Rsys=0.80..2.00 in 0.02 steps.
     rs=np.round(np.arange(0.80,2.0001,0.02),2)
-    targets={1.30,1.40,1.50}
+    targets={1.24,1.32,1.40}
     forward={}; reverse={}
     state=initial(vtotal)
     for r in rs:
@@ -171,7 +171,7 @@ def main():
     (OUT/"summary.json").write_text(json.dumps(summary,indent=2))
     with (OUT/"double_cosine_validation.log").open("w") as f:
         f.write("DOUBLE-COSINE ELASTANCE + INTEGER PHASE VALIDATION\n")
-        f.write("Original 3-state ideal-diode model; no tanh; no P_mean. Focused beta_R follow-up scan with independent forward/reverse continuation.\n")
+        f.write("Original 3-state ideal-diode model; no tanh; no P_mean. Single-candidate retest with independent forward/reverse continuation.\n")
         f.write(f"Tested {len(rows)} / {len(grid)} parameter combinations.\n")
         f.write(f"Candidate found: {winner is not None}\n")
         if winner: f.write(json.dumps(winner,indent=2)+"\n")
