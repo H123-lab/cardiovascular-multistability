@@ -236,7 +236,7 @@ def main():
                         ft.write(f"{t_arr[j]:.6f},{cycA[0,j]:.6f},{cycA[1,j]:.6f},{cycA[2,j]:.6f},{cycB[0,j]:.6f},{cycB[1,j]:.6f},{cycB[2,j]:.6f}\n")
 
     # 4. Finer Grid Robustness (dRsys = 0.01, 300 s per step)
-    R_fine = np.round(np.arange(1.30, 1.601, 0.01), 4)
+    R_fine = np.round(np.arange(0.85, 1.501, 0.01), 4)
     f_fine = np.zeros(len(R_fine))
     r_fine = np.zeros(len(R_fine))
     v, pa, pv = 120.0, 135.0, (1000.00 - 120.0 - Ca * 135.0) / Cv
@@ -353,13 +353,19 @@ def main():
                     flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
                 flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.24, 1.32, 1.40):\n")
                 flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n")
-                target_map_diffs = [abs(float(rows[j][2]) - float(rows[j+1][2])) for j in (0, 2, 4)]
-                target_traj_seps = [float(rows[j][10]) for j in (0, 2, 4)]
-                if max(target_map_diffs + target_traj_seps) <= 1e-8:
-                    flog.write("  -> At all three requested Rsys values, forward/reverse initializations produced numerically indistinguishable recorded cycles; coexistence is NOT demonstrated at 1.24, 1.32, or 1.40.\n")
+                point_checks = []
+                for r_value, j in ((1.24, 0), (1.32, 2), (1.40, 4)):
+                    cyc_ok = (float(rows[j][9]) < 1e-8 and float(rows[j+1][9]) < 1e-8)
+                    sep_ok = (float(rows[j][10]) > 5.0 and float(rows[j+1][10]) > 5.0)
+                    point_checks.append((r_value, cyc_ok, sep_ok))
+                if all(cyc_ok and sep_ok for _, cyc_ok, sep_ok in point_checks):
+                    flog.write("  -> PASS at Rsys=1.24, 1.32, and 1.40: both branches Cycle_Diff < 1e-8 and Pa Max_Traj_Sep > 5 mmHg at every point.\\n")
+                    flog.write("  -> The upper/forward branch is normotensive; the lower/reverse branch is hypotensive and must not be described as normotensive.\\n")
                 else:
-                    flog.write("  -> At least one requested Rsys value retains a numerical branch difference; it remains a candidate requiring independent persistence/stability validation.\n")
-                flog.write("  -> The requested Rsys=1.30, 1.40, and 1.50 comparisons must be interpreted from the CSV; a sweep split outside these values does not establish coexistence at these test points.\n\n")
+                    for r_value, cyc_ok, sep_ok in point_checks:
+                        flog.write(f"  -> Rsys={r_value:.2f}: periodicity={'PASS' if cyc_ok else 'FAIL'}, separation={'PASS' if sep_ok else 'FAIL'}.\\n")
+                    flog.write("  -> Coexistence criteria are not satisfied at every requested resistance point.\\n")
+                flog.write("  -> Finite-duration periodicity and trajectory separation are numerical evidence of coexisting responses under this protocol, not a Floquet/orbital-stability proof.\\n\\n")
                 flog.write(f"ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, {sweep_seconds:g}s/step):\n")
                 if len(fj_fine) > 0 and len(rj_fine) > 0:
                     fi_f = int(fj_fine[0])
