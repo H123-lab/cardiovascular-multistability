@@ -71,7 +71,7 @@ def integrate_capture(seed,rsys,pcrit,beta,ksig,alpha,total_steps):
 def integrate_short(seed,rsys,pcrit,beta,ksig,alpha,steps):
     v,pa,pv=seed
     for k in range(steps):
-        v,pa,pv=step_rk4(v,pa,pv,k,rsys,pcrit,beta,ksig)
+        v,pa,pv=step_rk4(v,pa,pv,k,rsys,pcrit,beta,ksig,alpha)
     return v,pa,pv
 
 def metrics(arr):
