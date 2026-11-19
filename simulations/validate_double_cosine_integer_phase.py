@@ -8,12 +8,12 @@ DT=0.001; T=0.80; C_STEPS=800; SYS_STEPS=240
 EMAX=2.0; EMIN=0.06; V0=10.0; CA=1.5; CV=100.0
 RAV=0.01; RMV=0.008; PERIODICITY=1e-8
 TARGETS=(1.30,1.40,1.50)
-# Targeted 162-combination scan requested for the double-cosine waveform.
-ALPHAS=(0.50,0.55,0.60)
-K_SIGS=(2.0,2.5,3.0)
-V_TOTALS=(1000.0,1050.0)
-P_CRITS=(40.0,50.0,60.0)
-BETAS=(40.0,50.0,60.0)
+# Focused beta_R follow-up for the proposed candidate; all other parameters fixed.
+ALPHAS=(0.50,)
+K_SIGS=(2.0,)
+V_TOTALS=(1000.0,)
+P_CRITS=(50.0,)
+BETAS=(42.0,43.0,44.0)
 
 @njit
 def elastance_shape(step_phase):
@@ -94,7 +94,10 @@ def sweep_branch(vtotal,pcrit,beta,ksig,alpha):
     for r in rs:
         state=integrate_short(state,float(r),pcrit,beta,ksig,alpha,20000)
         if float(r) in targets: forward[float(r)]=state
-    state=state
+    # Independent reverse continuation: initialize at the high-Rsys endpoint,
+    # rather than reusing the final state of the forward sweep.
+    state=initial(vtotal)
+    state=integrate_short(state,2.00,pcrit,beta,ksig,alpha,20000)
     for r in rs[::-1]:
         state=integrate_short(state,float(r),pcrit,beta,ksig,alpha,20000)
         if float(r) in targets: reverse[float(r)]=state
@@ -168,7 +171,7 @@ def main():
     (OUT/"summary.json").write_text(json.dumps(summary,indent=2))
     with (OUT/"double_cosine_validation.log").open("w") as f:
         f.write("DOUBLE-COSINE ELASTANCE + INTEGER PHASE VALIDATION\n")
-        f.write("Original 3-state ideal-diode model; no tanh; no P_mean. Targeted alpha/k_sig scan.\n")
+        f.write("Original 3-state ideal-diode model; no tanh; no P_mean. Focused beta_R follow-up scan with independent forward/reverse continuation.\n")
         f.write(f"Tested {len(rows)} / {len(grid)} parameter combinations.\n")
         f.write(f"Candidate found: {winner is not None}\n")
         if winner: f.write(json.dumps(winner,indent=2)+"\n")
