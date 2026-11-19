@@ -246,7 +246,12 @@ def main():
         v = float(Yc[0, -1])
         pa = float(Yc[1, -1])
         pv = float(Yc[2, -1])
-    for i in range(len(R_fine) - 1, -1, -1):
+    # Independently initialize the fine-grid reverse sweep at its high-Rsys end.
+    v, pa, pv = 120.0, 135.0, (1000.0 - 120.0 - Ca * 135.0) / Cv
+    Yc = rk4_integrate(v, pa, pv, float(R_fine[-1]), dt, sweep_seconds, 1)
+    r_fine[-1] = trapz_map(Yc[1, :], dt)
+    v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
+    for i in range(len(R_fine) - 2, -1, -1):
         Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, sweep_seconds, 1)
         r_fine[i] = trapz_map(Yc[1, :], dt)
         v = float(Yc[0, -1])
@@ -268,7 +273,7 @@ def main():
     vlv_max_base = 0.0
     vlv_min_base = 0.0
     v0_init, pa0_init = 120.0, 135.0
-    pv0_init = (1452.50 - v0_init - Ca * pa0_init) / Cv
+    pv0_init = (1000.0 - v0_init - Ca * pa0_init) / Cv
     for st_dt in steps_conv:
             Yc = rk4_integrate(v0_init, pa0_init, pv0_init, 1.40, st_dt, baseline_seconds, 2)
             cs = int(round(T / st_dt))
@@ -278,7 +283,7 @@ def main():
             if abs(st_dt - 0.001) < 1e-12:
                 pa_1ms = c_last[1, :]
                 v_tot_arr = Yc[0, :] + Ca * Yc[1, :] + Cv * Yc[2, :]
-                v_tot_drift = float(np.max(np.abs(v_tot_arr - 1452.50)))
+                v_tot_drift = float(np.max(np.abs(v_tot_arr - 1000.0)))
                 per_err_base = float(np.max(np.abs(c_last - c_prev)))
                 vlv_max_base = float(np.max(c_last[0, :]))
                 vlv_min_base = float(np.min(c_last[0, :]))
