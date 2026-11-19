@@ -149,7 +149,14 @@ def main():
         fwd_end[1, i] = pa
         fwd_end[2, i] = pv
 
-    for i in range(n_pts - 1, -1, -1):
+    # Independent reverse branch: initialize at Rsys=2.00 from the same
+    # conserved-volume seed, settle there, then continue downward.
+    v, pa, pv = 120.0, 135.0, (1000.0 - 120.0 - Ca * 135.0) / Cv
+    Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[-1]), dt, sweep_seconds, 1)
+    rev_map[-1] = trapz_map(Yc[1, :], dt)
+    v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
+    rev_end[:, -1] = (v, pa, pv)
+    for i in range(n_pts - 2, -1, -1):
         Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, sweep_seconds, 1)
         rev_map[i] = trapz_map(Yc[1, :], dt)
         v = float(Yc[0, -1])
