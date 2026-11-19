@@ -2,6 +2,8 @@ name: Reproduce Cardiovascular Model Results
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     paths:
       - 'simulations/**'
