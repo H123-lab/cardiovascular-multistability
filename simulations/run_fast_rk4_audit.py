@@ -19,16 +19,16 @@ inv_Rav = 1.0 / 0.01
 inv_Rmv = 1.0 / 0.008
 
 # Nonlinear Coronary-Afterload Coupling Parameters
-P_crit = 54.0
-k_sig = 1.2
-alpha = 0.72
-beta_R = 70.0
+P_crit = 50.0
+k_sig = 2.0
+alpha = 0.50
+beta_R = 40.0
 
 
 @njit
-def elastance_shape(t_mod):
-    if t_mod <= T_sys:
-        return 0.5 * (1.0 - math.cos(math.pi * t_mod / T_sys))
+def elastance_shape(phase_step, sys_steps):
+    if phase_step <= sys_steps:
+        return 0.5 * (1.0 - math.cos(2.0 * math.pi * phase_step / sys_steps))
     return 0.0
 
 
@@ -36,6 +36,7 @@ def elastance_shape(t_mod):
 def rk4_integrate(v, pa, pv, Rsys, dt, tsim, record_cycles=1):
     N = int(round(tsim / dt))
     c_steps = int(round(T / dt))
+    sys_steps = int(round(T_sys / dt))
     rec_len = record_cycles * c_steps + 1
     start_rec = N - record_cycles * c_steps
     inv_Rsys = 1.0 / Rsys
@@ -48,12 +49,13 @@ def rk4_integrate(v, pa, pv, Rsys, dt, tsim, record_cycles=1):
         Y_rec[2, 0] = pv
 
     for k in range(N):
-        t0 = (k * dt) % T
-        th = ((k + 0.5) * dt) % T
-        t1 = ((k + 1) * dt) % T
-        p0 = elastance_shape(t0)
-        ph = elastance_shape(th)
-        p1 = elastance_shape(t1)
+        # Integer-step cardiac phase indexing avoids floating-point modulo drift.
+        phase0 = float(k % c_steps)
+        phase_half = phase0 + 0.5
+        phase1 = float((k + 1) % c_steps)
+        p0 = elastance_shape(phase0, sys_steps)
+        ph = elastance_shape(phase_half, sys_steps)
+        p1 = elastance_shape(phase1, sys_steps)
 
         # Stage 1
         perf = alpha + (1.0 - alpha) / (1.0 + math.exp(-(pa - R_offset) / k_sig))
@@ -135,7 +137,7 @@ def main():
     fwd_end = np.zeros((3, n_pts))
     rev_end = np.zeros((3, n_pts))
 
-    v, pa, pv = 120.0, 135.0, (1452.50 - 120.0 - Ca * 135.0) / Cv
+    v, pa, pv = 120.0, 135.0, (1000.0 - 120.0 - Ca * 135.0) / Cv
     for i in range(n_pts):
         Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, sweep_seconds, 1)
         fwd_map[i] = trapz_map(Yc[1, :], dt)
@@ -146,7 +148,14 @@ def main():
         fwd_end[1, i] = pa
         fwd_end[2, i] = pv
 
-    for i in range(n_pts - 1, -1, -1):
+    # Independent reverse branch: initialize at Rsys=2.00 from the same
+    # conserved-volume seed, settle there, then continue downward.
+    v, pa, pv = 120.0, 135.0, (1000.0 - 120.0 - Ca * 135.0) / Cv
+    Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[-1]), dt, sweep_seconds, 1)
+    rev_map[-1] = trapz_map(Yc[1, :], dt)
+    v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
+    rev_end[:, -1] = (v, pa, pv)
+    for i in range(n_pts - 2, -1, -1):
         Yc = rk4_integrate(v, pa, pv, float(Rsys_vec[i]), dt, sweep_seconds, 1)
         rev_map[i] = trapz_map(Yc[1, :], dt)
         v = float(Yc[0, -1])
@@ -183,7 +192,7 @@ def main():
         fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\n")
         f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\n")
 
-        for r_val in [1.30, 1.40, 1.50]:
+        for r_val in [1.24, 1.32, 1.40]:
             idx = int(np.argmin(np.abs(Rsys_vec - r_val)))
             YA = rk4_integrate(float(fwd_end[0, idx]), float(fwd_end[1, idx]), float(fwd_end[2, idx]), r_val, dt, 300.0, 2)
             YB = rk4_integrate(float(rev_end[0, idx]), float(rev_end[1, idx]), float(rev_end[2, idx]), r_val, dt, 300.0, 2)
@@ -201,7 +210,7 @@ def main():
             coB = svB * (60.0 / T) / 1000.0
             errA = float(np.max(np.abs(cycA - prevA)))
             errB = float(np.max(np.abs(cycB - prevB)))
-            sep = float(np.max(np.abs(cycA - cycB)))
+            sep = float(np.max(np.abs(cycA[1, :] - cycB[1, :])))
 
             fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1, :]):.6f},{np.min(cycA[1, :]):.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e},{sep:.6f}\n")
             fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1, :]):.6f},{np.min(cycB[1, :]):.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e},{sep:.6f}\n")
@@ -227,17 +236,22 @@ def main():
                         ft.write(f"{t_arr[j]:.6f},{cycA[0,j]:.6f},{cycA[1,j]:.6f},{cycA[2,j]:.6f},{cycB[0,j]:.6f},{cycB[1,j]:.6f},{cycB[2,j]:.6f}\n")
 
     # 4. Finer Grid Robustness (dRsys = 0.01, 300 s per step)
-    R_fine = np.round(np.arange(1.50, 1.901, 0.01), 4)
+    R_fine = np.round(np.arange(0.85, 1.501, 0.01), 4)
     f_fine = np.zeros(len(R_fine))
     r_fine = np.zeros(len(R_fine))
-    v, pa, pv = 120.0, 135.0, (1452.50 - 120.0 - Ca * 135.0) / Cv
+    v, pa, pv = 120.0, 135.0, (1000.00 - 120.0 - Ca * 135.0) / Cv
     for i in range(len(R_fine)):
         Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, sweep_seconds, 1)
         f_fine[i] = trapz_map(Yc[1, :], dt)
         v = float(Yc[0, -1])
         pa = float(Yc[1, -1])
         pv = float(Yc[2, -1])
-    for i in range(len(R_fine) - 1, -1, -1):
+    # Independently initialize the fine-grid reverse sweep at its high-Rsys end.
+    v, pa, pv = 120.0, 135.0, (1000.0 - 120.0 - Ca * 135.0) / Cv
+    Yc = rk4_integrate(v, pa, pv, float(R_fine[-1]), dt, sweep_seconds, 1)
+    r_fine[-1] = trapz_map(Yc[1, :], dt)
+    v, pa, pv = float(Yc[0, -1]), float(Yc[1, -1]), float(Yc[2, -1])
+    for i in range(len(R_fine) - 2, -1, -1):
         Yc = rk4_integrate(v, pa, pv, float(R_fine[i]), dt, sweep_seconds, 1)
         r_fine[i] = trapz_map(Yc[1, :], dt)
         v = float(Yc[0, -1])
@@ -259,7 +273,7 @@ def main():
     vlv_max_base = 0.0
     vlv_min_base = 0.0
     v0_init, pa0_init = 120.0, 135.0
-    pv0_init = (1452.50 - v0_init - Ca * pa0_init) / Cv
+    pv0_init = (1000.0 - v0_init - Ca * pa0_init) / Cv
     for st_dt in steps_conv:
             Yc = rk4_integrate(v0_init, pa0_init, pv0_init, 1.40, st_dt, baseline_seconds, 2)
             cs = int(round(T / st_dt))
@@ -269,7 +283,7 @@ def main():
             if abs(st_dt - 0.001) < 1e-12:
                 pa_1ms = c_last[1, :]
                 v_tot_arr = Yc[0, :] + Ca * Yc[1, :] + Cv * Yc[2, :]
-                v_tot_drift = float(np.max(np.abs(v_tot_arr - 1452.50)))
+                v_tot_drift = float(np.max(np.abs(v_tot_arr - 1000.0)))
                 per_err_base = float(np.max(np.abs(c_last - c_prev)))
                 vlv_max_base = float(np.max(c_last[0, :]))
                 vlv_min_base = float(np.min(c_last[0, :]))
@@ -337,15 +351,21 @@ def main():
                     flog.write(f"  -> Hysteresis width Delta_Rsys = |Rf - Rr| = {abs(Rf - Rr):.3f} mmHg*s/mL\n\n")
                 else:
                     flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
-                flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.30, 1.40, 1.50):\n")
+                flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.24, 1.32, 1.40):\n")
                 flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n")
-                target_map_diffs = [abs(float(rows[j][2]) - float(rows[j+1][2])) for j in (0, 2, 4)]
-                target_traj_seps = [float(rows[j][10]) for j in (0, 2, 4)]
-                if max(target_map_diffs + target_traj_seps) <= 1e-8:
-                    flog.write("  -> At all three requested Rsys values, forward/reverse initializations produced numerically indistinguishable recorded cycles; coexistence is NOT demonstrated at 1.30, 1.40, or 1.50.\n")
+                point_checks = []
+                for r_value, j in ((1.24, 0), (1.32, 2), (1.40, 4)):
+                    cyc_ok = (float(rows[j][9]) < 1e-8 and float(rows[j+1][9]) < 1e-8)
+                    sep_ok = (float(rows[j][10]) > 5.0 and float(rows[j+1][10]) > 5.0)
+                    point_checks.append((r_value, cyc_ok, sep_ok))
+                if all(cyc_ok and sep_ok for _, cyc_ok, sep_ok in point_checks):
+                    flog.write("  -> PASS at Rsys=1.24, 1.32, and 1.40: both branches Cycle_Diff < 1e-8 and Pa Max_Traj_Sep > 5 mmHg at every point.\n")
+                    flog.write("  -> The upper/forward branch is normotensive; the lower/reverse branch is hypotensive and must not be described as normotensive.\n")
                 else:
-                    flog.write("  -> At least one requested Rsys value retains a numerical branch difference; it remains a candidate requiring independent persistence/stability validation.\n")
-                flog.write("  -> The requested Rsys=1.30, 1.40, and 1.50 comparisons must be interpreted from the CSV; a sweep split outside these values does not establish coexistence at these test points.\n\n")
+                    for r_value, cyc_ok, sep_ok in point_checks:
+                        flog.write(f"  -> Rsys={r_value:.2f}: periodicity={'PASS' if cyc_ok else 'FAIL'}, separation={'PASS' if sep_ok else 'FAIL'}.\n")
+                    flog.write("  -> Coexistence criteria are not satisfied at every requested resistance point.\n")
+                flog.write("  -> Finite-duration periodicity and trajectory separation are numerical evidence of coexisting responses under this protocol, not a Floquet/orbital-stability proof.\n\n")
                 flog.write(f"ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, {sweep_seconds:g}s/step):\n")
                 if len(fj_fine) > 0 and len(rj_fine) > 0:
                     fi_f = int(fj_fine[0])

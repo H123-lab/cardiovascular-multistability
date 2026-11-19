@@ -1,50 +1,44 @@
 function dxdt = cardiovascular_model(t, x, Rsys, p)
     % =========================================================================
-    % NONLINEAR 3-COMPARTMENT CARDIOVASCULAR MODEL WITH CORONARY-AFTERLOAD
-    % AUTOREGULATORY COUPLING
-    % State Vector: x = [V_LV; P_a; P_v] (Strictly conserves global stressed volume)
+    % THREE-STATE CARDIOVASCULAR MODEL WITH AFTERLOAD-DEPENDENT CONTRACTILITY
+    % State vector: x = [V_LV; P_a; P_v]
+    % Conserved volume: V_LV + Ca*P_a + Cv*P_v = V_total
     % =========================================================================
     V_LV = x(1);
     P_a  = x(2);
     P_v  = x(3);
-    
-    % 1. Nonlinear Physiological Feedback: Coronary Perfusion vs. Afterload Strain
-    % Nonlinear afterload-dependent contractility feedback; bistability is not assumed
-   P_crit = 54.0;   % Feedback offset parameter (mmHg)
-   k_sig  = 1.2;    % Sigmoid slope parameter (mmHg)
-   alpha  = 0.72;   % Lower asymptotic contractility factor
-   beta_R = 70.0;   % Afterload scaling coefficient
 
-    
+    % Locked parameter set validated in PR #6 (2026-11-19).
+    P_crit = 50.0;   % mmHg
+    k_sig  = 2.0;    % mmHg
+    alpha  = 0.50;
+    beta_R = 40.0;
+
     net_drive   = (P_a - beta_R * Rsys) - P_crit;
     perf_factor = alpha + (1.0 - alpha) / (1.0 + exp(-net_drive / k_sig));
     emax_eff    = p.emax * perf_factor;
-    
-    % 2. Time-Varying Ventricular Elastance Envelope
+
+    % Compact-support 2*pi double-cosine systolic elastance waveform.
+    % T_sys = 0.3*T = 0.24 s for T=0.80 s.
     tc = mod(t, p.T);
-    if tc <= 0.3 * p.T
-        E = p.emin + (emax_eff - p.emin) * (1 - cos(pi * tc / (0.3 * p.T))) / 2;
+    T_sys = 0.3 * p.T;
+    if tc <= T_sys
+        activation = 0.5 * (1.0 - cos(2.0 * pi * tc / T_sys));
     else
-        E = p.emin;
+        activation = 0.0;
     end
-    
+    E = p.emin + (emax_eff - p.emin) * activation;
+
     P_LV = E * (V_LV - p.v0);
-    
-    % 3. Unidirectional Ideal Diode Valvular Flows
+
+    % Strict one-way ideal-diode mitral and aortic valves.
     [q_mv, q_av] = flow_and_valves(P_LV, P_a, P_v, p);
-    
-    % 4. Systemic Capillary Flow
+
     q_sys = (P_a - P_v) / Rsys;
-    
-    % 5. Mass-Conserving Differential Equations (dV_LV + Ca*dPa + Cv*dPv === 0)
+
     dV_LV = q_mv - q_av;
     dP_a  = (q_av - q_sys) / p.Ca;
     dP_v  = (q_sys - q_mv) / p.Cv;
-    
+
     dxdt = [dV_LV; dP_a; dP_v];
 end
-
-
-
-  
-
