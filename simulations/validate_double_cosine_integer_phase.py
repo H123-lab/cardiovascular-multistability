@@ -96,7 +96,7 @@ def sweep_branch(vtotal,pcrit,beta,ksig,alpha):
         if float(r) in targets: forward[float(r)]=state
     state=state
     for r in rs[::-1]:
-        state=integrate_short(state,float(r),pcrit,beta,ksig,20000)
+        state=integrate_short(state,float(r),pcrit,beta,ksig,alpha,20000)
         if float(r) in targets: reverse[float(r)]=state
     return forward,reverse
 
