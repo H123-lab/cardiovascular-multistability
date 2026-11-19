@@ -10,7 +10,6 @@ os.makedirs("results/processed", exist_ok=True)
 # Locked Model Parameters (matches model/cardiovascular_model.m)
 T = 0.80
 T_sys = 0.3 * T
-T_SYS_STEPS = int(round(T_sys / 0.001))
 emax = 2.0
 emin = 0.06
 v0 = 10.0
@@ -27,9 +26,9 @@ beta_R = 40.0
 
 
 @njit
-def elastance_shape(phase_step):
-    if phase_step <= T_SYS_STEPS:
-        return 0.5 * (1.0 - math.cos(2.0 * math.pi * phase_step / T_SYS_STEPS))
+def elastance_shape(phase_step, sys_steps):
+    if phase_step <= sys_steps:
+        return 0.5 * (1.0 - math.cos(2.0 * math.pi * phase_step / sys_steps))
     return 0.0
 
 
@@ -54,9 +53,9 @@ def rk4_integrate(v, pa, pv, Rsys, dt, tsim, record_cycles=1):
         phase0 = float(k % c_steps)
         phase_half = phase0 + 0.5
         phase1 = float((k + 1) % c_steps)
-        p0 = elastance_shape(phase0)
-        ph = elastance_shape(phase_half)
-        p1 = elastance_shape(phase1)
+        p0 = elastance_shape(phase0, sys_steps)
+        ph = elastance_shape(phase_half, sys_steps)
+        p1 = elastance_shape(phase1, sys_steps)
 
         # Stage 1
         perf = alpha + (1.0 - alpha) / (1.0 + math.exp(-(pa - R_offset) / k_sig))
@@ -211,7 +210,7 @@ def main():
             coB = svB * (60.0 / T) / 1000.0
             errA = float(np.max(np.abs(cycA - prevA)))
             errB = float(np.max(np.abs(cycB - prevB)))
-            sep = float(np.max(np.abs(cycA - cycB)))
+            sep = float(np.max(np.abs(cycA[1, :] - cycB[1, :])))
 
             fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1, :]):.6f},{np.min(cycA[1, :]):.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e},{sep:.6f}\n")
             fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1, :]):.6f},{np.min(cycB[1, :]):.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e},{sep:.6f}\n")
