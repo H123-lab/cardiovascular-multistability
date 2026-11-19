@@ -359,13 +359,13 @@ def main():
                     sep_ok = (float(rows[j][10]) > 5.0 and float(rows[j+1][10]) > 5.0)
                     point_checks.append((r_value, cyc_ok, sep_ok))
                 if all(cyc_ok and sep_ok for _, cyc_ok, sep_ok in point_checks):
-                    flog.write("  -> PASS at Rsys=1.24, 1.32, and 1.40: both branches Cycle_Diff < 1e-8 and Pa Max_Traj_Sep > 5 mmHg at every point.\\n")
-                    flog.write("  -> The upper/forward branch is normotensive; the lower/reverse branch is hypotensive and must not be described as normotensive.\\n")
+                    flog.write("  -> PASS at Rsys=1.24, 1.32, and 1.40: both branches Cycle_Diff < 1e-8 and Pa Max_Traj_Sep > 5 mmHg at every point.\n")
+                    flog.write("  -> The upper/forward branch is normotensive; the lower/reverse branch is hypotensive and must not be described as normotensive.\n")
                 else:
                     for r_value, cyc_ok, sep_ok in point_checks:
-                        flog.write(f"  -> Rsys={r_value:.2f}: periodicity={'PASS' if cyc_ok else 'FAIL'}, separation={'PASS' if sep_ok else 'FAIL'}.\\n")
-                    flog.write("  -> Coexistence criteria are not satisfied at every requested resistance point.\\n")
-                flog.write("  -> Finite-duration periodicity and trajectory separation are numerical evidence of coexisting responses under this protocol, not a Floquet/orbital-stability proof.\\n\\n")
+                        flog.write(f"  -> Rsys={r_value:.2f}: periodicity={'PASS' if cyc_ok else 'FAIL'}, separation={'PASS' if sep_ok else 'FAIL'}.\n")
+                    flog.write("  -> Coexistence criteria are not satisfied at every requested resistance point.\n")
+                flog.write("  -> Finite-duration periodicity and trajectory separation are numerical evidence of coexisting responses under this protocol, not a Floquet/orbital-stability proof.\n\n")
                 flog.write(f"ANALYSIS 4 — SWEEP-RESOLUTION & SETTLING ROBUSTNESS (dRsys = 0.01, {sweep_seconds:g}s/step):\n")
                 if len(fj_fine) > 0 and len(rj_fine) > 0:
                     fi_f = int(fj_fine[0])
