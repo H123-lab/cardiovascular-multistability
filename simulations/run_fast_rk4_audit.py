@@ -124,6 +124,22 @@ def trapz_map(pa_cycle, dt):
     return float(np.trapezoid(pa_cycle, dx=dt) / T)
 
 
+
+def poincare_monodromy(x_star, Rsys, dt, epsilon=1e-6):
+    """Central-difference Jacobian of the exact one-cycle RK4 Poincare map."""
+    matrix = np.empty((3, 3), dtype=np.float64)
+    for j in range(3):
+        xp = np.asarray(x_star, dtype=np.float64).copy()
+        xm = np.asarray(x_star, dtype=np.float64).copy()
+        xp[j] += epsilon
+        xm[j] -= epsilon
+        yp = rk4_integrate(float(xp[0]), float(xp[1]), float(xp[2]), float(Rsys), dt, T, 1)[:, -1]
+        ym = rk4_integrate(float(xm[0]), float(xm[1]), float(xm[2]), float(Rsys), dt, T, 1)[:, -1]
+        matrix[:, j] = (yp - ym) / (2.0 * epsilon)
+    eigvals = np.linalg.eigvals(matrix)
+    neutral_idx = int(np.argmin(np.abs(eigvals - 1.0)))
+    return matrix, eigvals, neutral_idx
+
 def main():
     dt = 0.001
     sweep_seconds = float(os.environ.get('AUDIT_SWEEP_SECONDS', '300.0'))
@@ -188,9 +204,11 @@ def main():
     c_steps = int(round(T / dt))
     r140_600_cycle_diff = float("nan")
     with open("results/processed/coexistence_multi_Rsys_summary.csv", "w") as fc, \
-         open("results/processed/coexistence_R140_summary.csv", "w") as f140:
-        fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\n")
-        f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\n")
+         open("results/processed/coexistence_R140_summary.csv", "w") as f140, \
+         open("results/processed/floquet_stability_summary.csv", "w") as ff:
+        fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\\n")
+        f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\\n")
+        ff.write("Rsys,Orbit,MAP_mmHg,Cycle_Diff,epsilon,M11,M12,M13,M21,M22,M23,M31,M32,M33,mu1_real,mu1_imag,mu1_modulus,mu2_real,mu2_imag,mu2_modulus,mu3_real,mu3_imag,mu3_modulus,neutral_multiplier_distance,max_transverse_multiplier_modulus,strict_orbital_stability\\n")
 
         for r_val in [1.24, 1.32, 1.40]:
             idx = int(np.argmin(np.abs(Rsys_vec - r_val)))
@@ -211,6 +229,20 @@ def main():
             errA = float(np.max(np.abs(cycA - prevA)))
             errB = float(np.max(np.abs(cycB - prevB)))
             sep = float(np.max(np.abs(cycA[1, :] - cycB[1, :])))
+
+            # Finite-difference the one-cycle map from each final-cycle phase-zero state.
+            for orbit_name, cycle, orbit_map, orbit_err in (("Upper_Compensated", cycA, mA, errA), ("Lower_Hypoperfused", cycB, mB, errB)):
+                monodromy, multipliers, neutral_idx = poincare_monodromy(cycle[:, 0], r_val, dt, 1e-6)
+                order = [neutral_idx] + [i for i in range(3) if i != neutral_idx]
+                ordered = multipliers[order]
+                transverse_max = float(np.max(np.abs(ordered[1:])))
+                neutral_distance = float(abs(ordered[0] - 1.0))
+                stable = bool(neutral_distance < 1e-5 and transverse_max < 1.0)
+                matrix_fields = [f"{value:.12e}" for value in monodromy.ravel()]
+                eigen_fields = []
+                for value in ordered:
+                    eigen_fields.extend((f"{value.real:.12e}", f"{value.imag:.12e}", f"{abs(value):.12e}"))
+                ff.write(f"{r_val:.2f},{orbit_name},{orbit_map:.9f},{orbit_err:.6e},1.0e-6," + ",".join(matrix_fields + eigen_fields) + f",{neutral_distance:.12e},{transverse_max:.12e},{int(stable)}\\n")
 
             fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1, :]):.6f},{np.min(cycA[1, :]):.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e},{sep:.6f}\n")
             fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1, :]):.6f},{np.min(cycB[1, :]):.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e},{sep:.6f}\n")
