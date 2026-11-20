@@ -75,7 +75,7 @@ jobs:
               'forward_sweep.csv': 62,
               'reverse_sweep.csv': 62,
               'sweep_comparison.csv': 62,
-              'coexistence_multi_Rsys_summary.csv': 7,
+              'coexistence_multi_Rsys_summary.csv': 6,
               'coexistence_R140_summary.csv': 5,
               'coexistence_R140_trajectories.csv': 802,
               'baseline_summary.csv': 6,
