@@ -385,10 +385,16 @@ def main():
                     flog.write("  -> Both transition jumps not detected in raw sweep outputs.\n\n")
                 flog.write("ANALYSIS 3 — COEXISTING OPERATING RESPONSES (Rsys = 1.24, 1.32, 1.40):\n")
                 flog.write("  -> Saved to results/processed/coexistence_multi_Rsys_summary.csv & coexistence_R140_summary.csv\n")
+                rows_by_key = {(float(row[0]), row[1]): row for row in rows if len(row) >= 11}
                 point_checks = []
-                for r_value, j in ((1.24, 0), (1.32, 2), (1.40, 4)):
-                    cyc_ok = (float(rows[j][9]) < 1e-8 and float(rows[j+1][9]) < 1e-8)
-                    sep_ok = (float(rows[j][10]) > 5.0 and float(rows[j+1][10]) > 5.0)
+                for r_value in (1.24, 1.32, 1.40):
+                    upper = rows_by_key.get((r_value, "Forward_Branch_Init"))
+                    lower = rows_by_key.get((r_value, "Reverse_Branch_Init"))
+                    if upper is None or lower is None:
+                        point_checks.append((r_value, False, False))
+                        continue
+                    cyc_ok = (float(upper[9]) < 1e-8 and float(lower[9]) < 1e-8)
+                    sep_ok = (float(upper[10]) > 5.0 and float(lower[10]) > 5.0)
                     point_checks.append((r_value, cyc_ok, sep_ok))
                 if all(cyc_ok and sep_ok for _, cyc_ok, sep_ok in point_checks):
                     flog.write("  -> PASS at Rsys=1.24, 1.32, and 1.40: both branches Cycle_Diff < 1e-8 and Pa Max_Traj_Sep > 5 mmHg at every point.\n")
