@@ -49,10 +49,10 @@ jobs:
           required = {
               'audit_sweep_transcript.log': None,
               'audit_execution_transcript.log': None,
-              'coexistence_multi_Rsys_summary.csv': 6,
+              'coexistence_multi_Rsys_summary.csv': 7,
               'solver_convergence.csv': 5,
               'sweep_comparison.csv': 62,
-              'floquet_stability_summary.csv': 6,
+              'floquet_stability_summary.csv': 7,
           }
           for name, expected in required.items():
               f = p / name
