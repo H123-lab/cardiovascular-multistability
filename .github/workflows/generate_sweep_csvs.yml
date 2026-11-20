@@ -57,6 +57,7 @@ jobs:
           rm -f results/processed/solver_convergence.csv
           rm -f results/processed/audit_sweep_transcript.log
           rm -f results/processed/audit_execution_transcript.log
+          rm -f results/processed/floquet_stability_summary.csv
       - name: Compile audit script
         run: python -m py_compile simulations/run_fast_rk4_audit.py
       - name: Run full 300-second-per-point audit
@@ -79,6 +80,7 @@ jobs:
               'coexistence_R140_trajectories.csv': 802,
               'baseline_summary.csv': 6,
               'solver_convergence.csv': 5,
+              'floquet_stability_summary.csv': 7,
           }
           for name, nrows in expected.items():
               path = base / name
@@ -87,11 +89,24 @@ jobs:
                   rows = list(csv.reader(stream))
               assert len(rows) == nrows, f'{name}: expected {nrows} rows, got {len(rows)}'
               print(f'PASS {name}: {nrows-1} data rows')
+          floquet_path = base / 'floquet_stability_summary.csv'
+          with floquet_path.open(newline='') as stream:
+              floquet_rows = list(csv.DictReader(stream))
+          assert len(floquet_rows) == 6, f'expected six orbit/resistance rows, got {len(floquet_rows)}'
+          expected_pairs = {(r, orbit) for r in ('1.24', '1.32', '1.40') for orbit in ('Upper_Compensated', 'Lower_Hypoperfused')}
+          assert {(row['Rsys'], row['Orbit']) for row in floquet_rows} == expected_pairs
+          for row in floquet_rows:
+              assert float(row['neutral_multiplier_distance']) < 1e-5, row
+              assert float(row['max_transverse_multiplier_modulus']) < 1.0, row
+              assert row['strict_orbital_stability'] == '1', row
+          print('PASS floquet_stability_summary.csv: all six orbit stability gates passed')
           for name in ('audit_sweep_transcript.log','audit_execution_transcript.log'):
               path = base / name
               assert path.is_file() and path.stat().st_size > 0, f'missing/empty {name}'
               print(f'PASS {name}')
           PY
+      - name: Print complete Floquet stability summary
+        run: cat results/processed/floquet_stability_summary.csv
       - name: Upload full reproducibility outputs
         uses: actions/upload-artifact@v4
         with:
@@ -107,6 +122,7 @@ jobs:
             results/processed/solver_convergence.csv
             results/processed/audit_sweep_transcript.log
             results/processed/audit_execution_transcript.log
+            results/processed/floquet_stability_summary.csv
             results/processed/reproducibility_metadata.txt
           if-no-files-found: error
           retention-days: 90

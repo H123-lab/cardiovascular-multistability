@@ -52,6 +52,7 @@ jobs:
               'coexistence_multi_Rsys_summary.csv': 7,
               'solver_convergence.csv': 5,
               'sweep_comparison.csv': 62,
+              'floquet_stability_summary.csv': 7,
           }
           for name, expected in required.items():
               f = p / name
@@ -61,4 +62,13 @@ jobs:
                       count = sum(1 for _ in csv.reader(stream))
                   assert count == expected, f'{name}: expected {expected} rows, got {count}'
               print(f'PASS {name}')
+          floquet = p / 'floquet_stability_summary.csv'
+          with floquet.open(newline='') as stream:
+              floquet_rows = list(csv.DictReader(stream))
+          assert len(floquet_rows) == 6, f'expected six Floquet rows, got {len(floquet_rows)}'
+          for row in floquet_rows:
+              assert float(row['neutral_multiplier_distance']) < 1e-5, row
+              assert float(row['max_transverse_multiplier_modulus']) < 1.0, row
+              assert row['strict_orbital_stability'] == '1', row
+          print('PASS all six Floquet orbit stability rows')
           PY
