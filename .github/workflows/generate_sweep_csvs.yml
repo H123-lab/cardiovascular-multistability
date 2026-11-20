@@ -65,8 +65,6 @@ jobs:
           AUDIT_SWEEP_SECONDS: '300'
           AUDIT_BASELINE_SECONDS: '300'
         run: python simulations/run_fast_rk4_audit.py
-      - name: Print Floquet CSV before verification
-        run: cat results/processed/floquet_stability_summary.csv
       - name: Verify generated outputs and dimensions
         run: |
           python - <<'PY'
@@ -77,8 +75,8 @@ jobs:
               'forward_sweep.csv': 62,
               'reverse_sweep.csv': 62,
               'sweep_comparison.csv': 62,
-              'coexistence_multi_Rsys_summary.csv': 6,
-              'coexistence_R140_summary.csv': 4,
+              'coexistence_multi_Rsys_summary.csv': 7,
+              'coexistence_R140_summary.csv': 5,
               'coexistence_R140_trajectories.csv': 802,
               'baseline_summary.csv': 6,
               'solver_convergence.csv': 5,
