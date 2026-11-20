@@ -65,6 +65,8 @@ jobs:
           AUDIT_SWEEP_SECONDS: '300'
           AUDIT_BASELINE_SECONDS: '300'
         run: python simulations/run_fast_rk4_audit.py
+      - name: Print Floquet CSV before verification
+        run: cat results/processed/floquet_stability_summary.csv
       - name: Verify generated outputs and dimensions
         run: |
           python - <<'PY'
