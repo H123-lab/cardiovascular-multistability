@@ -42,6 +42,7 @@ jobs:
         run: python simulations/run_fast_rk4_audit.py
       - name: Verify required audit outputs
         run: |
+          python - <<'PY'
           import csv
           from pathlib import Path
           p = Path('results/processed')
@@ -70,3 +71,4 @@ jobs:
               assert float(row['max_transverse_multiplier_modulus']) < 1.0, row
               assert row['strict_orbital_stability'] == '1', row
           print('PASS all six Floquet orbit stability rows')
+          PY
