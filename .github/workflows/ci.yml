@@ -42,7 +42,6 @@ jobs:
         run: python simulations/run_fast_rk4_audit.py
       - name: Verify required audit outputs
         run: |
-          python - <<'PY'
           import csv
           from pathlib import Path
           p = Path('results/processed')
@@ -62,7 +61,7 @@ jobs:
                       count = sum(1 for _ in csv.reader(stream))
                   assert count == expected, f'{name}: expected {expected} rows, got {count}'
               print(f'PASS {name}')
-                    floquet = p / 'floquet_stability_summary.csv'
+          floquet = p / 'floquet_stability_summary.csv'
           with floquet.open(newline='') as stream:
               floquet_rows = list(csv.DictReader(stream))
           assert len(floquet_rows) == 6, f'expected six Floquet rows, got {len(floquet_rows)}'
@@ -71,4 +70,3 @@ jobs:
               assert float(row['max_transverse_multiplier_modulus']) < 1.0, row
               assert row['strict_orbital_stability'] == '1', row
           print('PASS all six Floquet orbit stability rows')
-                    PY
