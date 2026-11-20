@@ -206,9 +206,9 @@ def main():
     with open("results/processed/coexistence_multi_Rsys_summary.csv", "w") as fc, \
          open("results/processed/coexistence_R140_summary.csv", "w") as f140, \
          open("results/processed/floquet_stability_summary.csv", "w") as ff:
-        fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\\n")
-        f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\\n")
-        ff.write("Rsys,Orbit,MAP_mmHg,Cycle_Diff,epsilon,M11,M12,M13,M21,M22,M23,M31,M32,M33,mu1_real,mu1_imag,mu1_modulus,mu2_real,mu2_imag,mu2_modulus,mu3_real,mu3_imag,mu3_modulus,neutral_multiplier_distance,max_transverse_multiplier_modulus,strict_orbital_stability\\n")
+        fc.write("Rsys,Init_Source,MAP_mmHg,SV_mL,CO_L_min,Pa_Max_mmHg,Pa_Min_mmHg,VLV_Max_mL,VLV_Min_mL,Cycle_Diff,Max_Traj_Sep\n")
+        f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\n")
+        ff.write("Rsys,Orbit,MAP_mmHg,Cycle_Diff,epsilon,M11,M12,M13,M21,M22,M23,M31,M32,M33,mu1_real,mu1_imag,mu1_modulus,mu2_real,mu2_imag,mu2_modulus,mu3_real,mu3_imag,mu3_modulus,neutral_multiplier_distance,max_transverse_multiplier_modulus,strict_orbital_stability\n")
 
         for r_val in [1.24, 1.32, 1.40]:
             idx = int(np.argmin(np.abs(Rsys_vec - r_val)))
