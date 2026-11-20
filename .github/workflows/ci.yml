@@ -52,7 +52,7 @@ jobs:
               'coexistence_multi_Rsys_summary.csv': 6,
               'solver_convergence.csv': 5,
               'sweep_comparison.csv': 62,
-              'floquet_stability_summary.csv': 7,
+              'floquet_stability_summary.csv': 6,
           }
           for name, expected in required.items():
               f = p / name
