@@ -242,7 +242,7 @@ def main():
                 eigen_fields = []
                 for value in ordered:
                     eigen_fields.extend((f"{value.real:.12e}", f"{value.imag:.12e}", f"{abs(value):.12e}"))
-                ff.write(f"{r_val:.2f},{orbit_name},{orbit_map:.9f},{orbit_err:.6e},1.0e-6," + ",".join(matrix_fields + eigen_fields) + f",{neutral_distance:.12e},{transverse_max:.12e},{int(stable)}\\n")
+                ff.write(f"{r_val:.2f},{orbit_name},{orbit_map:.9f},{orbit_err:.6e},1.0e-6," + ",".join(matrix_fields + eigen_fields) + f",{neutral_distance:.12e},{transverse_max:.12e},{int(stable)}\n")
 
             fc.write(f"{r_val:.2f},Forward_Branch_Init,{mA:.6f},{svA:.6f},{coA:.6f},{np.max(cycA[1, :]):.6f},{np.min(cycA[1, :]):.6f},{np.max(cycA[0, :]):.6f},{np.min(cycA[0, :]):.6f},{errA:.6e},{sep:.6f}\n")
             fc.write(f"{r_val:.2f},Reverse_Branch_Init,{mB:.6f},{svB:.6f},{coB:.6f},{np.max(cycB[1, :]):.6f},{np.min(cycB[1, :]):.6f},{np.max(cycB[0, :]):.6f},{np.min(cycB[0, :]):.6f},{errB:.6e},{sep:.6f}\n")
