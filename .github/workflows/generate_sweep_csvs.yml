@@ -58,6 +58,7 @@ jobs:
           rm -f results/processed/audit_sweep_transcript.log
           rm -f results/processed/audit_execution_transcript.log
           rm -f results/processed/floquet_stability_summary.csv
+          rm -f results/processed/perturbation_experiments_summary.csv
       - name: Compile audit script
         run: python -m py_compile simulations/run_fast_rk4_audit.py
       - name: Run full 300-second-per-point audit
@@ -81,6 +82,7 @@ jobs:
               'baseline_summary.csv': 6,
               'solver_convergence.csv': 5,
               'floquet_stability_summary.csv': 7,
+              'perturbation_experiments_summary.csv': 25,
           }
           for name, nrows in expected.items():
               path = base / name
@@ -100,6 +102,23 @@ jobs:
               assert float(row['max_transverse_multiplier_modulus']) < 1.0, row
               assert row['strict_orbital_stability'] == '1', row
           print('PASS floquet_stability_summary.csv: all six orbit stability gates passed')
+          perturb_path = base / 'perturbation_experiments_summary.csv'
+          with perturb_path.open(newline='') as stream:
+              perturb_rows = list(csv.DictReader(stream))
+          assert len(perturb_rows) == 24, f'expected 24 perturbation cases, got {len(perturb_rows)}'
+          expected_cases = {
+              (r, orbit, delta)
+              for r in ('1.32', '1.40')
+              for orbit in ('Upper_Compensated', 'Lower_Hypoperfused')
+              for delta in ('-0.15', '-0.10', '0.10', '0.15')
+          }
+          observed_cases = {(row['Rsys'], row['Initial_Orbit'], row['Delta_VLV_Frac']) for row in perturb_rows}
+          assert observed_cases == expected_cases, 'perturbation case grid is incomplete or duplicated'
+          for row in perturb_rows:
+              assert float(row['Final_Cycle_Diff']) < 1e-8, row
+              assert row['Final_Orbit'] in ('Upper_Compensated', 'Lower_Hypoperfused'), row
+              assert row['Basin_Switched'] in ('0', '1'), row
+          print('PASS all 24 conserved-volume perturbation cases')
           for name in ('audit_sweep_transcript.log','audit_execution_transcript.log'):
               path = base / name
               assert path.is_file() and path.stat().st_size > 0, f'missing/empty {name}'
@@ -107,6 +126,8 @@ jobs:
           PY
       - name: Print complete Floquet stability summary
         run: cat results/processed/floquet_stability_summary.csv
+      - name: Print complete perturbation benchmark
+        run: cat results/processed/perturbation_experiments_summary.csv
       - name: Upload full reproducibility outputs
         uses: actions/upload-artifact@v4
         with:
@@ -123,6 +144,7 @@ jobs:
             results/processed/audit_sweep_transcript.log
             results/processed/audit_execution_transcript.log
             results/processed/floquet_stability_summary.csv
+            results/processed/perturbation_experiments_summary.csv
             results/processed/reproducibility_metadata.txt
           if-no-files-found: error
           retention-days: 90
