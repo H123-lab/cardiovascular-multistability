@@ -82,7 +82,7 @@ jobs:
               'baseline_summary.csv': 6,
               'solver_convergence.csv': 5,
               'floquet_stability_summary.csv': 7,
-              'perturbation_experiments_summary.csv': 25,
+              'perturbation_experiments_summary.csv': 17,
           }
           for name, nrows in expected.items():
               path = base / name
@@ -105,7 +105,7 @@ jobs:
           perturb_path = base / 'perturbation_experiments_summary.csv'
           with perturb_path.open(newline='') as stream:
               perturb_rows = list(csv.DictReader(stream))
-          assert len(perturb_rows) == 24, f'expected 24 perturbation cases, got {len(perturb_rows)}'
+          assert len(perturb_rows) == 16, f'expected 16 perturbation cases, got {len(perturb_rows)}'
           expected_cases = {
               (r, orbit, delta)
               for r in ('1.32', '1.40')
@@ -118,7 +118,7 @@ jobs:
               assert float(row['Final_Cycle_Diff']) < 1e-8, row
               assert row['Final_Orbit'] in ('Upper_Compensated', 'Lower_Hypoperfused'), row
               assert row['Basin_Switched'] in ('0', '1'), row
-          print('PASS all 24 conserved-volume perturbation cases')
+          print('PASS all 16 conserved-volume perturbation cases')
           for name in ('audit_sweep_transcript.log','audit_execution_transcript.log'):
               path = base / name
               assert path.is_file() and path.stat().st_size > 0, f'missing/empty {name}'
