@@ -210,6 +210,7 @@ def main():
         f140.write("Trial,MAP_mmHg,VLV_Max_mL,VLV_Min_mL,Successive_Cycle_Diff\n")
         ff.write("Rsys,Orbit,MAP_mmHg,Cycle_Diff,epsilon,M11,M12,M13,M21,M22,M23,M31,M32,M33,mu1_real,mu1_imag,mu1_modulus,mu2_real,mu2_imag,mu2_modulus,mu3_real,mu3_imag,mu3_modulus,neutral_multiplier_distance,max_transverse_multiplier_modulus,strict_orbital_stability\n")
 
+        perturbation_reference = {}
         for r_val in [1.24, 1.32, 1.40]:
             idx = int(np.argmin(np.abs(Rsys_vec - r_val)))
             YA = rk4_integrate(float(fwd_end[0, idx]), float(fwd_end[1, idx]), float(fwd_end[2, idx]), r_val, dt, 300.0, 2)
@@ -229,6 +230,11 @@ def main():
             errA = float(np.max(np.abs(cycA - prevA)))
             errB = float(np.max(np.abs(cycB - prevB)))
             sep = float(np.max(np.abs(cycA[1, :] - cycB[1, :])))
+            if r_val in (1.32, 1.40):
+                perturbation_reference[float(r_val)] = {
+                    "Upper_Compensated": (cycA.copy(), float(mA)),
+                    "Lower_Hypoperfused": (cycB.copy(), float(mB)),
+                }
 
             # Finite-difference the one-cycle map from each final-cycle phase-zero state.
             for orbit_name, cycle, orbit_map, orbit_err in (("Upper_Compensated", cycA, mA, errA), ("Lower_Hypoperfused", cycB, mB, errB)):
@@ -266,6 +272,81 @@ def main():
                     ft.write("Cycle_Time_s,V_LV_SimA,Pa_SimA,Pv_SimA,V_LV_SimB,Pa_SimB,Pv_SimB\n")
                     for j in range(c_steps + 1):
                         ft.write(f"{t_arr[j]:.6f},{cycA[0,j]:.6f},{cycA[1,j]:.6f},{cycA[2,j]:.6f},{cycB[0,j]:.6f},{cycB[1,j]:.6f},{cycB[2,j]:.6f}\n")
+
+    # 3b. Deterministic transient perturbations within the bistable regime.
+    # Each fractional LV-volume perturbation is compensated by venous pressure
+    # so VLV + Ca*Pa + Cv*Pv remains exactly 1000 mL up to floating precision.
+    perturbation_path = "results/processed/perturbation_experiments_summary.csv"
+    perturbation_deltas = (-0.15, -0.10, 0.10, 0.15)
+    with open(perturbation_path, "w", newline="") as fp:
+        writer = csv.writer(fp)
+        writer.writerow([
+            "Rsys", "Initial_Orbit", "Delta_VLV_Frac",
+            "Pre_Perturb_MAP_mmHg", "Post_Perturb_MAP_mmHg",
+            "Final_Orbit", "Basin_Switched", "Final_Cycle_Diff",
+            "Max_MAP_Shift_mmHg",
+        ])
+        for r_val in (1.32, 1.40):
+            refs = perturbation_reference[float(r_val)]
+            for initial_orbit in ("Upper_Compensated", "Lower_Hypoperfused"):
+                reference_cycle, pre_map = refs[initial_orbit]
+                x0 = reference_cycle[:, 0].astype(np.float64).copy()
+                for delta in perturbation_deltas:
+                    v_pert = float(x0[0] * (1.0 + delta))
+                    pa_pert = float(x0[1])
+                    pv_pert = float(x0[2] - (delta * x0[0]) / Cv)
+                    stressed_volume = v_pert + Ca * pa_pert + Cv * pv_pert
+                    # Remove only floating-point roundoff from the algebraic
+                    # compensation; this is equivalent to reconstructing Pv
+                    # from the invariant VLV + Ca*Pa + Cv*Pv = 1000 mL.
+                    pv_pert += (1000.0 - stressed_volume) / Cv
+                    stressed_volume = v_pert + Ca * pa_pert + Cv * pv_pert
+                    if abs(stressed_volume - 1000.0) > 1e-10:
+                        raise RuntimeError(
+                            f"Perturbation violated stressed-volume conservation: "
+                            f"Rsys={r_val}, orbit={initial_orbit}, delta={delta}, "
+                            f"V_total={stressed_volume:.15f}"
+                        )
+
+                    # Record all 375 cycles (300 s / 0.8 s) with the exact
+                    # shared RK4 core so transient MAP excursions are measurable.
+                    Yp = rk4_integrate(v_pert, pa_pert, pv_pert,
+                                       float(r_val), dt, 300.0, 375)
+                    cycle_maps = np.empty(375, dtype=np.float64)
+                    for cycle_idx in range(375):
+                        lo = cycle_idx * c_steps
+                        hi = lo + c_steps + 1
+                        cycle_maps[cycle_idx] = trapz_map(Yp[1, lo:hi], dt)
+
+                    post_map = float(cycle_maps[-1])
+                    max_map_shift = float(np.max(np.abs(cycle_maps - pre_map)))
+                    final_cycle = Yp[:, 374 * c_steps:375 * c_steps + 1]
+                    previous_cycle = Yp[:, 373 * c_steps:374 * c_steps + 1]
+                    final_cycle_diff = float(np.max(np.abs(final_cycle - previous_cycle)))
+
+                    upper_map = refs["Upper_Compensated"][1]
+                    lower_map = refs["Lower_Hypoperfused"][1]
+                    upper_distance = abs(post_map - upper_map)
+                    lower_distance = abs(post_map - lower_map)
+                    final_orbit = ("Upper_Compensated" if upper_distance <= lower_distance
+                                   else "Lower_Hypoperfused")
+                    # Do not assign a basin label unless the final trajectory
+                    # is periodic and its MAP is close to the corresponding orbit.
+                    nearest_distance = min(upper_distance, lower_distance)
+                    if final_cycle_diff >= 1e-8 or nearest_distance > 0.5:
+                        final_orbit = "Unresolved"
+                    basin_switched = int(
+                        final_orbit in ("Upper_Compensated", "Lower_Hypoperfused")
+                        and final_orbit != initial_orbit
+                    )
+                    writer.writerow([
+                        f"{r_val:.2f}", initial_orbit, f"{delta:.2f}",
+                        f"{pre_map:.9f}", f"{post_map:.9f}", final_orbit,
+                        basin_switched, f"{final_cycle_diff:.6e}",
+                        f"{max_map_shift:.9f}",
+                    ])
+
+    print(f"Completed deterministic transient perturbation benchmark: {perturbation_path}")
 
     # 4. Finer Grid Robustness (dRsys = 0.01, 300 s per step)
     R_fine = np.round(np.arange(0.85, 1.501, 0.01), 4)
