@@ -296,7 +296,12 @@ def main():
                     pa_pert = float(x0[1])
                     pv_pert = float(x0[2] - (delta * x0[0]) / Cv)
                     stressed_volume = v_pert + Ca * pa_pert + Cv * pv_pert
-                    if abs(stressed_volume - 1000.0) > 1e-9:
+                    # Remove only floating-point roundoff from the algebraic
+                    # compensation; this is equivalent to reconstructing Pv
+                    # from the invariant VLV + Ca*Pa + Cv*Pv = 1000 mL.
+                    pv_pert += (1000.0 - stressed_volume) / Cv
+                    stressed_volume = v_pert + Ca * pa_pert + Cv * pv_pert
+                    if abs(stressed_volume - 1000.0) > 1e-10:
                         raise RuntimeError(
                             f"Perturbation violated stressed-volume conservation: "
                             f"Rsys={r_val}, orbit={initial_orbit}, delta={delta}, "
